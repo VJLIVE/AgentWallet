@@ -223,6 +223,41 @@ export default async function agentRoutes(fastify, options) {
   });
 
   /**
+   * GET /api/agent/wallet-info
+   * Get agent wallet information for x402 payments
+   */
+  fastify.get('/agent/wallet-info', async (request, reply) => {
+    try {
+      const { isX402Configured, getAgentWalletAddress, getAgentWalletBalance } = await import('../services/x402.js');
+      
+      if (!isX402Configured()) {
+        return reply.send({
+          success: true,
+          configured: false,
+          message: 'Agent wallet not configured. Set AGENT_WALLET_MNEMONIC in .env file.',
+        });
+      }
+
+      const address = getAgentWalletAddress();
+      const balance = await getAgentWalletBalance();
+
+      return reply.send({
+        success: true,
+        configured: true,
+        address,
+        balance: balance.balanceInAlgo,
+        balanceInMicroAlgo: balance.balance,
+        minBalance: balance.minBalanceInAlgo,
+      });
+    } catch (error) {
+      fastify.log.error('Get agent wallet info error:', error);
+      return reply.code(500).send({
+        error: 'Failed to get agent wallet info',
+        message: error.message,
+      });
+    }
+  });
+  /**
    * GET /api/agent/services/:serviceId
    * Get service details by ID
    */

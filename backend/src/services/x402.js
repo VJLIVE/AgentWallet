@@ -33,38 +33,62 @@ export async function executeX402Payment({
     // Recover agent account from mnemonic
     const agentAccount = algosdk.mnemonicToSecretKey(agentMnemonic);
     
-    console.log(`[x402] Executing automatic payment from agent wallet: ${agentAccount.addr}`);
+    console.log(`[x402] Agent account type:`, typeof agentAccount.addr);
+    console.log(`[x402] Agent account addr:`, agentAccount.addr);
+    
+    // In algosdk v3, addr might be an Address object, we need the string
+    const fromAddress = typeof agentAccount.addr === 'string' 
+      ? agentAccount.addr 
+      : algosdk.encodeAddress(agentAccount.addr.publicKey);
+    
+    console.log(`[x402] Executing automatic payment from agent wallet: ${fromAddress}`);
     console.log(`[x402] To: ${receiverAddress}, Amount: ${amount / 1_000_000} ALGO`);
     
     // Get suggested params
-    const suggestedParams = await algodClient.getTransactionParams().do();
+    const params = await algodClient.getTransactionParams().do();
+    console.log(`[x402] Transaction params received from network`);
 
-    // Create payment transaction
+    // Validate addresses
+    if (!fromAddress || !receiverAddress) {
+      throw new Error(`Invalid addresses - from: ${fromAddress}, to: ${receiverAddress}`);
+    }
+
+    console.log(`[x402] Creating payment transaction...`);
+
+    // algosdk v3 renamed from/to -> sender/receiver and uses Address objects
+    const senderAddr = algosdk.Address.fromString(fromAddress);
+    const receiverAddr = algosdk.Address.fromString(receiverAddress);
+
+    // Create payment transaction - algosdk v3 API
     const paymentTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: agentAccount.addr,
-      to: receiverAddress,
+      sender: senderAddr,
+      receiver: receiverAddr,
       amount: amount,
-      note: note ? new Uint8Array(Buffer.from(note)) : undefined,
-      suggestedParams,
+      suggestedParams: params,
     });
+
+    console.log(`[x402] Transaction created successfully, signing...`);
 
     // Sign transaction with agent's private key
     const signedTxn = paymentTxn.signTxn(agentAccount.sk);
 
-    // Send transaction
-    const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
-    
+    console.log(`[x402] Transaction signed, submitting to network...`);
+
+    // Send transaction - algosdk v3 returns { txid } (lowercase)
+    const sendResult = await algodClient.sendRawTransaction(signedTxn).do();
+    const txId = sendResult.txid;
+
     console.log(`[x402] Transaction submitted: ${txId}`);
 
-    // Wait for confirmation
+    // Wait for confirmation - algosdk v3 returns confirmedRound as bigint
     const confirmedTxn = await algosdk.waitForConfirmation(algodClient, txId, 4);
     
-    console.log(`[x402] Transaction confirmed in round: ${confirmedTxn['confirmed-round']}`);
+    console.log(`[x402] Transaction confirmed in round: ${confirmedTxn.confirmedRound}`);
 
     return {
       txId,
-      confirmedRound: confirmedTxn['confirmed-round'],
-      from: agentAccount.addr,
+      confirmedRound: Number(confirmedTxn.confirmedRound),
+      from: fromAddress,
       to: receiverAddress,
       amount,
       amountInAlgo: amount / 1_000_000,
@@ -96,7 +120,8 @@ export function getAgentWalletAddress() {
     if (!agentMnemonic) return null;
     
     const agentAccount = algosdk.mnemonicToSecretKey(agentMnemonic);
-    return agentAccount.addr;
+    const addr = agentAccount.addr;
+    return typeof addr === 'string' ? addr : algosdk.encodeAddress(addr.publicKey);
   } catch (error) {
     console.error('[x402] Failed to get agent wallet address:', error);
     return null;

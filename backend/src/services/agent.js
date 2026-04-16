@@ -16,7 +16,7 @@ const SERVICE_CATALOG = [
     vendor: 'PDFCo',
     cost: 500000, // 0.5 ALGO
     description: 'Basic PDF text extraction',
-    walletAddress: 'BV7YPBZBZEFOHTWJCHP4ITG4IZDTQYSRPHC2GOBJBQXUXQRCLGYAUSZKMQ', // Cheapest service
+    walletAddress: 'BV7YPBZBZEFOHTWJCHP4ITG4IZDTQYSRPHC2GOBJBQXUXQRCLGYAUSZKMQ', // Your address - CHEAPEST with valid address
   },
   {
     id: 'pdf-parser-premium',
@@ -24,15 +24,15 @@ const SERVICE_CATALOG = [
     vendor: 'PDFPro',
     cost: 2000000, // 2 ALGO
     description: 'Advanced PDF parsing with OCR',
-    walletAddress: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', // Random
+    walletAddress: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ', // Valid TestNet address
   },
   {
     id: 'llm-summarize-cheap',
     name: 'Basic Summarizer',
     vendor: 'TextAI',
-    cost: 300000, // 0.3 ALGO
+    cost: 800000, // 0.8 ALGO - Made more expensive so PDF parser is cheaper
     description: 'Simple text summarization',
-    walletAddress: 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB', // Random
+    walletAddress: 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBY5HFKQ', // Valid TestNet address
   },
   {
     id: 'llm-summarize-premium',
@@ -40,7 +40,7 @@ const SERVICE_CATALOG = [
     vendor: 'OpenAI',
     cost: 1500000, // 1.5 ALGO
     description: 'Advanced AI summarization',
-    walletAddress: 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC', // Random
+    walletAddress: 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCY5HFKQ', // Valid TestNet address
   },
 ];
 

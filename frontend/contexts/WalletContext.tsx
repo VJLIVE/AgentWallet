@@ -19,9 +19,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [wallet, setWallet] = useState<PeraWalletConnect | null>(null);
   const [accountAddress, setAccountAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Initialize Pera Wallet
+    // Only run on client side
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    // Initialize Pera Wallet only on client side
     const peraWallet = new PeraWalletConnect();
     setWallet(peraWallet);
 
@@ -45,7 +53,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setIsConnected(false);
       toast.error('Wallet disconnected');
     });
-  }, []);
+  }, [isClient]);
 
   const connect = async () => {
     if (!wallet) {
@@ -99,6 +107,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       throw new Error('Failed to sign transaction');
     }
   };
+
+  // Don't render wallet functionality on server side
+  if (!isClient) {
+    return (
+      <WalletContext.Provider
+        value={{
+          wallet: null,
+          accountAddress: null,
+          isConnected: false,
+          connect: async () => {},
+          disconnect: async () => {},
+          signTransaction: async () => new Uint8Array(),
+        }}
+      >
+        {children}
+      </WalletContext.Provider>
+    );
+  }
 
   return (
     <WalletContext.Provider
