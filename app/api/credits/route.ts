@@ -34,8 +34,7 @@ async function getCreditBalance(userAddress: string): Promise<number> {
       .accountApplicationInformation(userAddress, CREDIT_CONTRACT_ID)
       .do();
 
-    const localState = accountInfo?.appLocalState?.keyValue
-      ?? accountInfo?.['app-local-state']?.['key-value'];
+    const localState = (accountInfo as any)?.appLocalState?.keyValue ?? [];
 
     if (!localState || !Array.isArray(localState)) return 0;
 
@@ -69,7 +68,7 @@ async function deductCredits(
     const suggestedParams = await algodClient.getTransactionParams().do();
     
     // Increase fee to ensure transaction goes through
-    suggestedParams.fee = 1000;
+    suggestedParams.fee = BigInt(1000);
     suggestedParams.flatFee = true;
 
     // Build the method call - deduct_credits uses 'address' type, not 'account'
@@ -108,7 +107,7 @@ async function deductCredits(
     
     console.log('[DEDUCT CREDITS] Sending transaction to network...');
     const sendResult = await algodClient.sendRawTransaction(signedTxn).do();
-    const txId = sendResult.txid || sendResult.txId;
+    const txId = sendResult.txid ?? '';
     
     console.log(`[DEDUCT CREDITS] Transaction sent - TxID: ${txId}`);
     console.log('[DEDUCT CREDITS] Waiting for confirmation...');

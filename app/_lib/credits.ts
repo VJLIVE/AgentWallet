@@ -22,7 +22,9 @@ export async function hasOptedIn(userAddress: string): Promise<boolean> {
   try {
     const accountInfo = await algodClient.accountInformation(userAddress).do();
     // algosdk v3: camelCase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const appsLocalState = (accountInfo as any).appsLocalState ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return appsLocalState.some((app: any) => {
       const id = typeof app.id === 'bigint' ? Number(app.id) : Number(app.id);
       return id === CREDIT_CONTRACT_ID;
@@ -63,7 +65,7 @@ export async function optInToContract(
   const txnBytes = algosdk.encodeUnsignedTransaction(optInTxn);
   const signedTxns = await signTransactions([txnBytes], [0]);
   const optInResult = await algodClient.sendRawTransaction(signedTxns).do();
-  const txId = optInResult.txid ?? optInResult.txId ?? '';
+  const txId = optInResult.txid ?? '';
   // Wait up to 10 rounds for confirmation
   await algosdk.waitForConfirmation(algodClient, txId, 10);
   return txId;
@@ -115,7 +117,7 @@ export async function buyCredits(
 
   // Send transaction group
   const sendResult = await algodClient.sendRawTransaction(signedTxns).do();
-  const txId = sendResult.txid ?? sendResult.txId ?? sendResult['txId'] ?? '';
+  const txId = sendResult.txid ?? '';
 
   // Wait for confirmation — if polling times out, the tx likely already confirmed
   try {
