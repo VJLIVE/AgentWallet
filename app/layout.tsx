@@ -4,6 +4,7 @@ import Link from "next/link";
 import { WalletProvider } from "./_components/WalletProvider";
 import { ConnectWalletButton } from "./_components/ConnectWalletButton";
 import { ThemeToggle } from "./_components/ThemeToggle";
+import CreditBalanceNav from "./_components/CreditBalanceNav";
 import "./globals.css";
 
 const inter = Inter({
@@ -110,6 +111,7 @@ const NAV_LINKS = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/workflow", label: "Workflow" },
   { href: "/explorer", label: "Explorer" },
+  { href: "/credits", label: "Buy Credits" },
   { href: "/register", label: "List Agent" },
 ];
 
@@ -117,6 +119,7 @@ const FOOTER_PLATFORM = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/workflow", label: "Workflow Builder" },
   { href: "/explorer", label: "Explorer" },
+  { href: "/credits", label: "Buy Credits" },
   { href: "/register", label: "List Agent" },
 ];
 
@@ -374,6 +377,7 @@ export default function RootLayout({
               {/* Right actions */}
               <div className="flex items-center gap-2">
                 <ThemeToggle />
+                <CreditBalanceNav />
                 <ConnectWalletButton />
               </div>
             </div>

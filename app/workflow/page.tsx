@@ -6,6 +6,8 @@ import type { WorkflowStep, NegotiationOffer, Agent, PaymentResult } from '@/app
 import WorkflowVisualizer from '@/app/_components/WorkflowVisualizer';
 import NegotiationDialog from '@/app/_components/NegotiationDialog';
 import { useWallet } from '@/app/_components/WalletProvider';
+import CreditBalance from '@/app/_components/CreditBalance';
+import { calculateWorkflowCost } from '@/app/_lib/credits';
 
 interface StepWithAgents extends WorkflowStep {
   discoveredAgents?: Agent[];
@@ -334,6 +336,9 @@ function WorkflowPageInner() {
           Describe a task — agents plan, negotiate, pay via x402, and execute autonomously
         </p>
       </div>
+
+      {/* Credit Balance - Show when wallet is connected */}
+      {isConnected && <CreditBalance />}
 
       {/* Wallet gate — hard block when not connected */}
       {!isConnected ? (

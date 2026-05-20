@@ -17,6 +17,7 @@ import {
   type ReactNode,
 } from 'react';
 import { PeraWalletConnect } from '@perawallet/connect';
+import algosdk from 'algosdk';
 
 // Singleton — must live outside component
 let peraWallet: PeraWalletConnect | null = null;
@@ -108,13 +109,35 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const wallet = getPeraWallet();
       if (!address) throw new Error('Wallet not connected');
 
-      const signerTxns = txns.map((txn, i) => ({
-        txn: txn as unknown as import('algosdk').Transaction,
+      // algosdk v3: decode Uint8Array back to Transaction objects for Pera Wallet
+      const signerTxns = txns.map((txnBytes, i) => ({
+        txn: algosdk.decodeUnsignedTransaction(txnBytes),
         signers: indexesToSign.includes(i) ? [address] : [],
       }));
 
-      // signTransaction returns Uint8Array[] — one signed blob per transaction
-      return wallet.signTransaction([signerTxns]);
+      try {
+        return await wallet.signTransaction([signerTxns]);
+      } catch (err: unknown) {
+        const e = err as { code?: number; message?: string };
+        // Error 4100 = stale pending transaction — reset the connector and retry once
+        if (e?.code === 4100 || e?.message?.includes('4100')) {
+          console.warn('Stale pending transaction detected, resetting connector...');
+          // Kill the singleton so a fresh one is created on next call
+          peraWallet = null;
+          const freshWallet = getPeraWallet();
+          // Reconnect the existing session
+          const accounts = await freshWallet.reconnectSession();
+          if (!accounts || accounts.length === 0) {
+            throw new Error('Wallet session expired. Please reconnect your wallet.');
+          }
+          const freshSignerTxns = txns.map((txnBytes, i) => ({
+            txn: algosdk.decodeUnsignedTransaction(txnBytes),
+            signers: indexesToSign.includes(i) ? [address] : [],
+          }));
+          return freshWallet.signTransaction([freshSignerTxns]);
+        }
+        throw err;
+      }
     },
     [address]
   );
