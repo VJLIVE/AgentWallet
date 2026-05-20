@@ -86,7 +86,7 @@ export default function WorkflowPage() {
 }
 
 function WorkflowPageInner() {
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, connect } = useWallet();
   const searchParams = useSearchParams();
   const [request, setRequest] = useState('');
   const [flowPhase, setFlowPhase] = useState<FlowPhase>('idle');
@@ -127,6 +127,10 @@ function WorkflowPageInner() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!request.trim()) return;
+    if (!isConnected) {
+      setError('Connect your Pera Wallet before running a workflow.');
+      return;
+    }
 
     setError(null);
     setFlowPhase('planning');
@@ -331,35 +335,56 @@ function WorkflowPageInner() {
         </p>
       </div>
 
-      {/* Wallet warning */}
-      {!isConnected && (
+      {/* Wallet gate — hard block when not connected */}
+      {!isConnected ? (
         <div
+          className="card"
           style={{
+            padding: '3rem',
+            textAlign: 'center',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.875rem 1.25rem',
-            borderRadius: '10px',
-            border: '1px solid color-mix(in srgb, var(--amber) 30%, transparent)',
-            background: 'var(--amber-subtle)',
-            color: 'var(--amber)',
-            fontSize: '0.875rem',
+            gap: '1.25rem',
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <span>Connect your Pera Wallet to make real x402 payments on Algorand Testnet.</span>
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              background: 'var(--accent-subtle)',
+              border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--accent)',
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.375rem' }}>
+              Wallet required to run workflows
+            </p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', maxWidth: '360px' }}>
+              Connect your Pera Wallet to authorize USDC payments on Algorand Testnet. Payments are settled autonomously via x402.
+            </p>
+          </div>
+          <button onClick={connect} className="btn-accent" style={{ borderRadius: '9999px' }}>
+            Connect Pera Wallet
+          </button>
         </div>
-      )}
-
-      {/* Input form */}
-      <div
-        className="card"
-        style={{ padding: '1.5rem' }}
-      >
+      ) : (
+        <>
+          {/* Input form */}
+          <div
+            className="card"
+            style={{ padding: '1.5rem' }}
+          >
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <label style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'var(--text-secondary)' }}>
             Describe your objective
@@ -424,6 +449,8 @@ function WorkflowPageInner() {
           )}
         </form>
       </div>
+        </>
+      )} {/* end wallet gate */}
 
       {/* Error */}
       {error && (
