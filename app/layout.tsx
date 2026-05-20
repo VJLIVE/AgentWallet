@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import { WalletProvider } from "./_components/WalletProvider";
 import { ConnectWalletButton } from "./_components/ConnectWalletButton";
@@ -9,6 +9,21 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -47,16 +62,10 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
-      className={`${inter.variable} h-full`}
+      className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=JetBrains+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -102,10 +111,47 @@ export default function RootLayout({
         style={{ background: "var(--bg-base)", color: "var(--text-primary)" }}
       >
         <WalletProvider>
+          {/* ── Ollama requirement banner ────────────────────────────── */}
+          <div style={{
+            background: "linear-gradient(90deg, #065f46, #047857, #059669, #047857, #065f46)",
+            backgroundSize: "200% 100%",
+            borderBottom: "1px solid rgba(16,185,129,0.3)",
+            overflow: "hidden",
+            height: "32px",
+            display: "flex",
+            alignItems: "center",
+          }}>
+            <marquee
+              behavior="scroll"
+              direction="left"
+              scrollamount="4"
+              style={{
+                color: "#d1fae5",
+                fontSize: "0.75rem",
+                fontWeight: "500",
+                letterSpacing: "0.04em",
+                whiteSpace: "nowrap",
+              }}
+            >
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              ⚠️ &nbsp; PREREQUISITE — This project requires <strong style={{ color: "#ffffff" }}>Ollama</strong> running locally with the <strong style={{ color: "#ffffff" }}>llama3</strong> model pulled. &nbsp; Run: &nbsp;
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama serve</code>
+              &nbsp; then &nbsp;
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama pull llama3</code>
+              &nbsp;&nbsp; · &nbsp;&nbsp; Optional for negotiation: &nbsp;
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama pull deepseek-r1</code>
+              &nbsp;&nbsp; · &nbsp;&nbsp; Without Ollama the app falls back to keyword-based planning and template responses. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              ⚠️ &nbsp; PREREQUISITE — This project requires <strong style={{ color: "#ffffff" }}>Ollama</strong> running locally with the <strong style={{ color: "#ffffff" }}>llama3</strong> model pulled. &nbsp; Run: &nbsp;
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama serve</code>
+              &nbsp; then &nbsp;
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama pull llama3</code>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </marquee>
+          </div>
+
           {/* ── Navigation ──────────────────────────────────────────────── */}
           <nav className="glass-nav sticky top-0 z-50" style={{ height: "60px" }}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">
-              {/* Logo */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">              {/* Logo */}
               <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.625rem", flexShrink: 0 }}>
                 <div
                   style={{

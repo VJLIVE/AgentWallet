@@ -110,9 +110,9 @@
 @theme inline {
   --color-background: var(--bg-base);
   --color-foreground: var(--text-primary);
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "Geist Mono", monospace;
-  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "Geist Mono", monospace;
+  --font-display: var(--font-playfair), Georgia, serif;
 }
 
 /* ─── BASE ──────────────────────────────────────────────────────────────────── */
@@ -127,7 +127,7 @@ html {
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -147,11 +147,11 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
 /* ─── TYPOGRAPHY UTILITIES ──────────────────────────────────────────────────── */
-.font-display { font-family: "Playfair Display", Georgia, serif; }
-.font-mono-code { font-family: "JetBrains Mono", monospace; }
+.font-display { font-family: var(--font-playfair), Georgia, serif; }
+.font-mono-code { font-family: var(--font-jetbrains), monospace; }
 
 .text-display-xl {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-playfair), Georgia, serif;
   font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 900;
   line-height: 1.0;
@@ -159,7 +159,7 @@ body {
 }
 
 .text-display-lg {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-playfair), Georgia, serif;
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 700;
   line-height: 1.1;
@@ -392,7 +392,7 @@ body {
 
 /* ─── STAT NUMBER ────────────────────────────────────────────────────────────── */
 .stat-number {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-playfair), Georgia, serif;
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -427,7 +427,7 @@ body {
 
 /* ─── MONO HASH ──────────────────────────────────────────────────────────────── */
 .mono-hash {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-jetbrains), monospace;
   font-size: 0.75rem;
   color: var(--accent);
   text-decoration: none;
