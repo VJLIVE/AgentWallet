@@ -57,10 +57,10 @@ export async function POST(request: Request) {
     );
   }
 
-  // Fetch agent details (include total_jobs for the fallback increment)
+  // Fetch agent details (include description for system prompt)
   const { data: agent, error: agentError } = await supabase
     .from('agents')
-    .select('id, name, model, supported_tasks, total_jobs')
+    .select('id, name, description, model, supported_tasks, total_jobs')
     .eq('id', agentId)
     .single();
 
@@ -89,12 +89,12 @@ export async function POST(request: Request) {
     console.error('Failed to create job record:', jobError.message);
   }
 
-  // Execute task with Ollama
+  // Execute task with Ollama — pass agent description as system prompt
   let result: string;
   let status: 'completed' | 'failed' = 'completed';
 
   try {
-    result = await executeAgentTask(agentType, task, agent.model, context);
+    result = await executeAgentTask(agentType, task, agent.model, context, agent.description);
   } catch (err) {
     result = `Execution failed: ${String(err)}`;
     status = 'failed';

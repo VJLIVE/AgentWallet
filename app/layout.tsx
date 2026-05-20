@@ -28,10 +28,14 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AgentWallet — Autonomous AI Marketplace",
+  title: "AgentWallet",
   description:
     "Economic infrastructure for autonomous AI systems. Agents discover, negotiate, and pay each other using x402 and Algorand.",
   keywords: ["AI agents", "x402", "Algorand", "USDC", "autonomous payments", "marketplace"],
+  icons: {
+    icon: "/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png",
+    apple: "/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png",
+  },
 };
 
 const NAV_LINKS = [
@@ -113,9 +117,9 @@ export default function RootLayout({
         <WalletProvider>
           {/* ── Ollama requirement banner ────────────────────────────── */}
           <div style={{
-            background: "linear-gradient(90deg, #065f46, #047857, #059669, #047857, #065f46)",
+            background: "linear-gradient(90deg, #005570, #007a96, #0099b8, #007a96, #005570)",
             backgroundSize: "200% 100%",
-            borderBottom: "1px solid rgba(16,185,129,0.3)",
+            borderBottom: "1px solid rgba(0,212,232,0.25)",
             overflow: "hidden",
             height: "32px",
             display: "flex",
@@ -126,7 +130,7 @@ export default function RootLayout({
               direction="left"
               scrollamount="4"
               style={{
-                color: "#d1fae5",
+                color: "#b8f0f6",
                 fontSize: "0.75rem",
                 fontWeight: "500",
                 letterSpacing: "0.04em",
@@ -135,16 +139,16 @@ export default function RootLayout({
             >
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               ⚠️ &nbsp; PREREQUISITE — This project requires <strong style={{ color: "#ffffff" }}>Ollama</strong> running locally with the <strong style={{ color: "#ffffff" }}>llama3</strong> model pulled. &nbsp; Run: &nbsp;
-              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama serve</code>
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#80eaf3" }}>ollama serve</code>
               &nbsp; then &nbsp;
-              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama pull llama3</code>
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#80eaf3" }}>ollama pull llama3</code>
               &nbsp;&nbsp; · &nbsp;&nbsp; Optional for negotiation: &nbsp;
-              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama pull deepseek-r1</code>
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#80eaf3" }}>ollama pull deepseek-r1</code>
               &nbsp;&nbsp; · &nbsp;&nbsp; Without Ollama the app falls back to keyword-based planning and template responses. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               ⚠️ &nbsp; PREREQUISITE — This project requires <strong style={{ color: "#ffffff" }}>Ollama</strong> running locally with the <strong style={{ color: "#ffffff" }}>llama3</strong> model pulled. &nbsp; Run: &nbsp;
-              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama serve</code>
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#80eaf3" }}>ollama serve</code>
               &nbsp; then &nbsp;
-              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#6ee7b7" }}>ollama pull llama3</code>
+              <code style={{ background: "rgba(0,0,0,0.3)", padding: "1px 6px", borderRadius: "4px", fontFamily: "JetBrains Mono, monospace", color: "#80eaf3" }}>ollama pull llama3</code>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </marquee>
           </div>
@@ -153,32 +157,31 @@ export default function RootLayout({
           <nav className="glass-nav sticky top-0 z-50" style={{ height: "60px" }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">              {/* Logo */}
               <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.625rem", flexShrink: 0 }}>
-                <div
+                <img
+                  src="/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png"
+                  alt="AgentWallet"
                   style={{
                     width: "32px",
                     height: "32px",
                     borderRadius: "8px",
-                    background: "var(--text-primary)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "var(--bg-base)",
-                    fontSize: "15px",
-                    fontWeight: "700",
+                    objectFit: "contain",
                     flexShrink: 0,
                   }}
-                >
-                  ⚡
-                </div>
+                />
                 <span
                   style={{
                     fontWeight: "700",
                     fontSize: "15px",
-                    color: "var(--text-primary)",
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  AgentWallet
+                  <span style={{ color: "var(--text-primary)" }}>Agent</span>
+                  <span style={{
+                    background: "linear-gradient(135deg, #00d4e8 0%, #0099b8 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}>Wallet</span>
                 </span>
               </Link>
 
@@ -209,23 +212,24 @@ export default function RootLayout({
                 {/* Brand */}
                 <div className="col-span-2 md:col-span-1">
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                    <div
+                    <img
+                      src="/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png"
+                      alt="AgentWallet"
                       style={{
                         width: "28px",
                         height: "28px",
                         borderRadius: "7px",
-                        background: "var(--text-primary)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "var(--bg-base)",
-                        fontSize: "13px",
+                        objectFit: "contain",
                       }}
-                    >
-                      ⚡
-                    </div>
-                    <span style={{ fontWeight: "700", fontSize: "14px", color: "var(--text-primary)" }}>
-                      AgentWallet
+                    />
+                    <span style={{ fontWeight: "700", fontSize: "14px" }}>
+                      <span style={{ color: "var(--text-primary)" }}>Agent</span>
+                      <span style={{
+                        background: "linear-gradient(135deg, #00d4e8 0%, #0099b8 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}>Wallet</span>
                     </span>
                   </div>
                   <p style={{ fontSize: "0.8125rem", color: "var(--text-tertiary)", lineHeight: "1.6", maxWidth: "220px" }}>

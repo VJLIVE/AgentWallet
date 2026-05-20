@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import type { WorkflowStep, NegotiationOffer, Agent, PaymentResult } from '@/app/_lib/types';
 import WorkflowVisualizer from '@/app/_components/WorkflowVisualizer';
 import NegotiationDialog from '@/app/_components/NegotiationDialog';
-import { X402PaymentFlow, PaymentStatusDisplay } from '@/app/_components/X402PaymentFlow';
 import { useWallet } from '@/app/_components/WalletProvider';
 
 interface StepWithAgents extends WorkflowStep {
@@ -17,7 +16,7 @@ interface StepState {
   negotiation?: NegotiationOffer;
   paymentResult?: PaymentResult;
   paymentStatus: 'idle' | 'pending' | 'confirmed' | 'error';
-  paymentPhase: 'idle' | 'requesting' | 'signing' | 'settling' | 'confirmed' | 'error';
+  paymentPhase: 'idle' | 'requesting' | 'settling' | 'confirmed' | 'error';
   result?: string;
   phase: 'waiting' | 'negotiating' | 'paying' | 'executing' | 'done';
 }
@@ -172,6 +171,44 @@ function WorkflowPageInner() {
 
   function handleNegotiationComplete(index: number, offer: NegotiationOffer) {
     updateStepState(index, { negotiation: offer, phase: 'paying' });
+    // Trigger payment automatically — no button needed
+    triggerPayment(index, offer);
+  }
+
+  async function triggerPayment(index: number, offer: NegotiationOffer) {
+    const step = stepsRef.current[index];
+    const agent = step?.discoveredAgents?.[0];
+    if (!agent) {
+      handlePaymentError(index, 'No agent found for this step');
+      return;
+    }
+
+    updateStepState(index, {
+      paymentPhase: 'settling',
+    });
+
+    try {
+      const res = await fetch('/api/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId: agent.id,
+          resource: `/api/execute/${step.task.replace(/\s+/g, '-').toLowerCase()}`,
+          senderAddress: address ?? undefined,
+          negotiatedPrice: offer.finalPrice,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json() as { error: string; reason?: string };
+        throw new Error(err.error ?? 'Payment failed');
+      }
+
+      const result = await res.json() as PaymentResult;
+      handlePaymentSuccess(index, result);
+    } catch (err) {
+      handlePaymentError(index, err instanceof Error ? err.message : String(err));
+    }
   }
 
   function handlePaymentSuccess(index: number, result: PaymentResult) {
@@ -534,52 +571,19 @@ function WorkflowPageInner() {
                       }}
                     >
                       Agreed price:
-                      <span
-                        style={{
-                          fontFamily: 'JetBrains Mono, monospace',
-                          fontWeight: '600',
-                          color: 'var(--accent)',
-                        }}
-                      >
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: '600', color: 'var(--accent)' }}>
                         ${ss.negotiation?.finalPrice?.toFixed(4) ?? agent.pricing.basePrice.toFixed(4)} USDC
                       </span>
                     </div>
-
-                    <X402PaymentFlow
-                      agentId={agent.id}
-                      resource={`/api/execute/${step.task.replace(/\s+/g, '-').toLowerCase()}`}
-                      negotiatedPrice={ss.negotiation?.finalPrice}
-                      onSuccess={result => handlePaymentSuccess(i, result)}
-                      onError={err => handlePaymentError(i, err)}
-                    >
-                      {(trigger, payStatus) => (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          <PaymentStatusDisplay
-                            status={payStatus}
-                            message={
-                              payStatus === 'idle' ? 'Ready to pay'
-                              : payStatus === 'requesting' ? 'Sending 402 request…'
-                              : payStatus === 'signing' ? 'Sign in Pera Wallet app…'
-                              : payStatus === 'settling' ? 'Settling on Algorand…'
-                              : payStatus === 'confirmed' ? 'Payment confirmed on-chain'
-                              : 'Payment failed'
-                            }
-                            txHash={ss.paymentResult?.txHash ?? null}
-                          />
-                          {(payStatus === 'idle' || payStatus === 'error') && (
-                            <button
-                              id={`pay-step-${i}-btn`}
-                              onClick={trigger}
-                              disabled={!isConnected}
-                              className="btn-accent"
-                              style={{ alignSelf: 'flex-start', borderRadius: '8px' }}
-                            >
-                              {isConnected ? '⚡ Pay with Pera Wallet' : 'Connect wallet to pay'}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </X402PaymentFlow>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--accent)' }}>
+                      {ss.paymentPhase === 'error'
+                        ? <span style={{ color: 'var(--red)' }}>❌ Payment failed</span>
+                        : <>
+                            <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }} />
+                            Settling payment on Algorand…
+                          </>
+                      }
+                    </div>
                   </div>
                 )}
 

@@ -1,31 +1,38 @@
 @import "tailwindcss";
 
 /* ─── THEME TOKENS ─────────────────────────────────────────────────────────── */
+/*
+ * Palette derived from the AgentWallet logo:
+ *   Background  — dark charcoal  #1e1e1e
+ *   Accent      — cyan-teal gradient  #00d4e8 → #0099b8 → #006d8f
+ *   Text        — white primary, cyan highlights
+ */
+
 :root,
 [data-theme="light"] {
-  /* Surfaces */
-  --bg-base:       #f5f4ef;
+  /* Surfaces — light mode keeps a cool off-white tinted toward the logo bg */
+  --bg-base:       #f0f4f5;
   --bg-surface:    #ffffff;
-  --bg-elevated:   #f0efe9;
-  --bg-overlay:    rgba(255, 255, 255, 0.7);
+  --bg-elevated:   #e8f0f2;
+  --bg-overlay:    rgba(255, 255, 255, 0.75);
 
   /* Borders */
-  --border-subtle: #e5e4de;
-  --border-default: #d4d3cd;
-  --border-strong: #b4b3ad;
+  --border-subtle:  #d0dde0;
+  --border-default: #b8cdd2;
+  --border-strong:  #8aadb5;
 
   /* Text */
-  --text-primary:   #0f0f0e;
-  --text-secondary: #4a4a45;
-  --text-tertiary:  #7a7a75;
-  --text-muted:     #a4a49f;
+  --text-primary:   #0a1a1e;
+  --text-secondary: #2e4a52;
+  --text-tertiary:  #5a7a84;
+  --text-muted:     #8aaab2;
   --text-inverted:  #ffffff;
 
-  /* Accent — emerald */
-  --accent:         #059669;
-  --accent-hover:   #047857;
-  --accent-subtle:  #d1fae5;
-  --accent-fg:      #065f46;
+  /* Accent — cyan-teal (logo primary) */
+  --accent:         #0099b8;
+  --accent-hover:   #007a96;
+  --accent-subtle:  #d0f4f9;
+  --accent-fg:      #005570;
 
   /* Semantic */
   --amber:          #d97706;
@@ -36,74 +43,74 @@
   --red-subtle:     #fee2e2;
 
   /* Shadows */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
-  --shadow-xl:  0 16px 48px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.06);
+  --shadow-xs:  0 1px 2px rgba(0,30,40,0.05);
+  --shadow-sm:  0 2px 8px rgba(0,30,40,0.08), 0 1px 2px rgba(0,30,40,0.05);
+  --shadow-md:  0 4px 16px rgba(0,30,40,0.10), 0 2px 4px rgba(0,30,40,0.05);
+  --shadow-lg:  0 8px 32px rgba(0,30,40,0.12), 0 4px 8px rgba(0,30,40,0.06);
+  --shadow-xl:  0 16px 48px rgba(0,30,40,0.14), 0 8px 16px rgba(0,30,40,0.07);
 
   /* Nav glass */
-  --nav-bg:     rgba(245, 244, 239, 0.85);
-  --nav-border: rgba(212, 211, 205, 0.8);
+  --nav-bg:     rgba(240, 244, 245, 0.88);
+  --nav-border: rgba(184, 205, 210, 0.8);
 
   /* Card glass */
-  --glass-bg:     rgba(255, 255, 255, 0.6);
-  --glass-border: rgba(212, 211, 205, 0.5);
+  --glass-bg:     rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(184, 205, 210, 0.5);
 
   /* Glow */
-  --glow-accent:  0 0 0 3px rgba(5, 150, 105, 0.12);
+  --glow-accent:  0 0 0 3px rgba(0, 153, 184, 0.15);
 }
 
 [data-theme="dark"] {
-  /* Surfaces */
-  --bg-base:       #080807;
-  --bg-surface:    #111110;
-  --bg-elevated:   #1a1a18;
-  --bg-overlay:    rgba(17, 17, 16, 0.8);
+  /* Surfaces — matches the logo's dark charcoal background */
+  --bg-base:       #141618;
+  --bg-surface:    #1a1d20;
+  --bg-elevated:   #22262a;
+  --bg-overlay:    rgba(20, 22, 24, 0.85);
 
-  /* Borders */
-  --border-subtle: #222220;
-  --border-default: #2a2a28;
-  --border-strong: #3a3a38;
+  /* Borders — subtle cool-dark tones */
+  --border-subtle:  #1e2428;
+  --border-default: #262c32;
+  --border-strong:  #323a42;
 
   /* Text */
-  --text-primary:   #f0f0ee;
-  --text-secondary: #a8a8a4;
-  --text-tertiary:  #6a6a66;
-  --text-muted:     #4a4a46;
-  --text-inverted:  #0f0f0e;
+  --text-primary:   #e8f4f6;
+  --text-secondary: #8ab4be;
+  --text-tertiary:  #567880;
+  --text-muted:     #364850;
+  --text-inverted:  #0a1a1e;
 
-  /* Accent — emerald */
-  --accent:         #10b981;
-  --accent-hover:   #34d399;
-  --accent-subtle:  rgba(16, 185, 129, 0.1);
-  --accent-fg:      #6ee7b7;
+  /* Accent — bright cyan from logo top highlights */
+  --accent:         #00d4e8;
+  --accent-hover:   #33dded;
+  --accent-subtle:  rgba(0, 212, 232, 0.10);
+  --accent-fg:      #80eaf3;
 
   /* Semantic */
   --amber:          #f59e0b;
-  --amber-subtle:   rgba(245, 158, 11, 0.1);
+  --amber-subtle:   rgba(245, 158, 11, 0.10);
   --blue:           #3b82f6;
-  --blue-subtle:    rgba(59, 130, 246, 0.1);
+  --blue-subtle:    rgba(59, 130, 246, 0.10);
   --red:            #ef4444;
-  --red-subtle:     rgba(239, 68, 68, 0.1);
+  --red-subtle:     rgba(239, 68, 68, 0.10);
 
   /* Shadows */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.3);
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.4);
-  --shadow-xl:  0 16px 48px rgba(0,0,0,0.7), 0 8px 16px rgba(0,0,0,0.5);
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.35);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.35);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.65), 0 4px 8px rgba(0,0,0,0.45);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.75), 0 8px 16px rgba(0,0,0,0.55);
 
   /* Nav glass */
-  --nav-bg:     rgba(8, 8, 7, 0.85);
-  --nav-border: rgba(42, 42, 40, 0.9);
+  --nav-bg:     rgba(14, 16, 18, 0.88);
+  --nav-border: rgba(38, 44, 50, 0.95);
 
   /* Card glass */
-  --glass-bg:     rgba(26, 26, 24, 0.6);
-  --glass-border: rgba(42, 42, 40, 0.6);
+  --glass-bg:     rgba(26, 29, 32, 0.65);
+  --glass-border: rgba(38, 44, 50, 0.65);
 
   /* Glow */
-  --glow-accent:  0 0 0 3px rgba(16, 185, 129, 0.15);
+  --glow-accent:  0 0 0 3px rgba(0, 212, 232, 0.18);
 }
 
 /* ─── THEME INLINE ─────────────────────────────────────────────────────────── */
@@ -355,8 +362,9 @@ body {
 }
 
 /* ─── GRADIENT TEXT ──────────────────────────────────────────────────────────── */
+/* Mirrors the logo's cyan-to-teal gradient on "Wallet" wordmark */
 .gradient-text-accent {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  background: linear-gradient(135deg, #00d4e8 0%, #0099b8 60%, #006d8f 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -367,7 +375,7 @@ body {
   position: absolute;
   width: 600px;
   height: 400px;
-  background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%);
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(40px);
   pointer-events: none;

@@ -64,6 +64,11 @@ export function buildPaymentRequirement(
   // Convert USDC decimal to micro-units (6 decimals)
   const amountInMicroUnits = Math.round(usdcAmount * Math.pow(10, USDC_DECIMALS));
 
+  // GoPlausible facilitator fee payer addresses (covers Algorand tx fees)
+  const feePayer = network === ALGORAND_MAINNET_CAIP2
+    ? 'ZMFK2OI7ZBD2U27ISERZC4S6LKM6WMFJPZQ4MYNJDZ2VNBNMBA67RA22AA'
+    : 'ZMFK2OI7ZBD2U27ISERZC4S6LKM6WMFJPZQ4MYNJDZ2VNBNMBA67RA22AA';
+
   return {
     scheme: 'exact',
     network,
@@ -72,6 +77,7 @@ export function buildPaymentRequirement(
     asset: asaId,
     resource,
     description,
+    extra: { feePayer },
   };
 }
 
@@ -87,10 +93,10 @@ export function buildPaymentRequiredHeader(
 
 /**
  * Verifies a payment payload with the GoPlausible facilitator.
- * Returns { valid: boolean, reason?: string }
+ * paymentPayload is the raw object returned by ExactAvmScheme.createPaymentPayload()
  */
 export async function verifyPaymentWithFacilitator(
-  paymentPayload: string,
+  paymentPayload: unknown,
   requirements: X402PaymentRequirement
 ): Promise<{ valid: boolean; reason?: string }> {
   const facilitatorUrl = process.env.X402_FACILITATOR_URL ?? 'https://facilitator.goplausible.xyz';
@@ -105,14 +111,9 @@ export async function verifyPaymentWithFacilitator(
       }),
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      return { valid: false, reason: `Facilitator error ${res.status}: ${text}` };
-    }
-
     const data = await res.json() as { isValid: boolean; invalidReason?: string; invalidMessage?: string };
     return {
-      valid: data.isValid,
+      valid: data.isValid === true,
       reason: data.invalidMessage ?? data.invalidReason,
     };
   } catch (err) {
@@ -122,10 +123,10 @@ export async function verifyPaymentWithFacilitator(
 
 /**
  * Settles a payment via the GoPlausible facilitator.
- * Returns the Algorand transaction ID on success.
+ * paymentPayload is the raw object returned by ExactAvmScheme.createPaymentPayload()
  */
 export async function settlePaymentWithFacilitator(
-  paymentPayload: string,
+  paymentPayload: unknown,
   requirements: X402PaymentRequirement
 ): Promise<{ txHash: string; success: boolean; error?: string }> {
   const facilitatorUrl = process.env.X402_FACILITATOR_URL ?? 'https://facilitator.goplausible.xyz';
@@ -145,9 +146,9 @@ export async function settlePaymentWithFacilitator(
       return { txHash: '', success: false, error: `Facilitator error ${res.status}: ${text}` };
     }
 
-    const data = await res.json() as { txnId?: string; txHash?: string; error?: string };
-    const txHash = data.txnId ?? data.txHash ?? '';
-    return { txHash, success: !!txHash };
+    const data = await res.json() as { transaction?: string; txnId?: string; txHash?: string; success?: boolean; error?: string };
+    const txHash = data.transaction ?? data.txnId ?? data.txHash ?? '';
+    return { txHash, success: data.success === true || !!txHash };
   } catch (err) {
     return { txHash: '', success: false, error: String(err) };
   }

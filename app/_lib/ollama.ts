@@ -182,19 +182,20 @@ function planWithKeywords(userRequest: string): PlannedStep[] {
 // ─── Agent Executor ───────────────────────────────────────────────────────────
 
 /**
- * Executes a task using Ollama with the appropriate model for the agent type.
+ * Executes a task using Ollama with the agent's own description as the system prompt.
  * Falls back to a structured mock result if Ollama is unavailable.
  */
 export async function executeAgentTask(
   agentType: string,
   task: string,
   model: string,
-  context?: string
+  context?: string,
+  agentDescription?: string,
 ): Promise<string> {
   const ollamaAvailable = await isOllamaAvailable(model);
 
   if (ollamaAvailable) {
-    return executeWithOllama(agentType, task, model, context);
+    return executeWithOllama(agentType, task, model, context, agentDescription);
   }
 
   return generateFallbackResult(agentType, task);
@@ -204,9 +205,12 @@ async function executeWithOllama(
   agentType: string,
   task: string,
   model: string,
-  context?: string
+  context?: string,
+  agentDescription?: string,
 ): Promise<string> {
-  const systemPrompts: Record<string, string> = {
+  // Use the agent's own description as the system prompt if available.
+  // This ensures the agent behaves exactly as configured in the marketplace.
+  const fallbackPrompts: Record<string, string> = {
     'research-agent': 'You are a research AI agent. Provide detailed, factual research findings with key data points, trends, and insights. Be concise but comprehensive.',
     'writer-agent': 'You are a professional writing AI agent. Produce well-structured, clear written content. Use headers and bullet points where appropriate.',
     'visualization-agent': 'You are a data visualization AI agent. Describe the charts and graphs you would create, including data structure, chart types, and key insights they would reveal.',
@@ -214,7 +218,9 @@ async function executeWithOllama(
     'negotiator-agent': 'You are a negotiation AI agent. Analyze pricing and provide optimal negotiation strategies.',
   };
 
-  const systemPrompt = systemPrompts[agentType] ?? 'You are a helpful AI agent. Complete the given task.';
+  const systemPrompt = agentDescription?.trim()
+    ? agentDescription.trim()
+    : (fallbackPrompts[agentType] ?? 'You are a helpful AI agent. Complete the given task thoroughly and directly.');
 
   const messages: OllamaMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -222,12 +228,16 @@ async function executeWithOllama(
 
   if (context) {
     messages.push({ role: 'user', content: `Context from previous steps:\n${context}` });
-    messages.push({ role: 'assistant', content: 'Understood. I will use this context.' });
+    messages.push({ role: 'assistant', content: 'Understood. I will use this context to complete the task.' });
   }
 
-  messages.push({ role: 'user', content: `Task: ${task}` });
+  // Be explicit — tell the model to execute the task directly, not ask questions
+  messages.push({
+    role: 'user',
+    content: `Execute the following task completely and directly. Do not ask clarifying questions — use your best judgment and produce a full, detailed response now.\n\nTask: ${task}`,
+  });
 
-  return ollamaChat(messages, model, 60000);
+  return ollamaChat(messages, model, 120000);
 }
 
 function generateFallbackResult(agentType: string, task: string): string {

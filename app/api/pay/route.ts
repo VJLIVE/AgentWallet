@@ -1,41 +1,50 @@
 /**
  * POST /api/pay
  *
- * Implements the real x402 payment flow on Algorand:
+ * Implements the x402 payment flow on Algorand — fully server-side signing.
  *
- * 1. Client calls this endpoint with { agentId, resource, paymentPayload? }
- * 2. If no paymentPayload → return 402 with PAYMENT-REQUIRED header
- * 3. If paymentPayload present → verify with GoPlausible facilitator
- * 4. If valid → settle with facilitator → record in Supabase → return 200
+ * The server wallet (AVM_PRIVATE_KEY) signs and submits the payment autonomously.
+ * No client-side Pera Wallet interaction is needed for the payment itself.
  *
- * The paymentPayload is a base64-encoded ExactAvmPayloadV2 created by the
- * client using @x402/avm ExactAvmScheme + Pera Wallet signing.
+ * Flow:
+ * 1. Client calls with { agentId, resource }
+ * 2. Server builds PaymentRequirement
+ * 3. Server signs the USDC transfer using AVM_PRIVATE_KEY via toClientAvmSigner
+ * 4. Server verifies + settles with GoPlausible facilitator
+ * 5. Records in Supabase → returns txHash
  */
 import { createClient } from '@/app/_lib/supabase/server';
 import {
   buildPaymentRequirement,
-  buildPaymentRequiredHeader,
   verifyPaymentWithFacilitator,
   settlePaymentWithFacilitator,
   getUsdcAsaId,
   getNetwork,
 } from '@/app/_lib/algorand';
+import { ExactAvmScheme, toClientAvmSigner } from '@x402/avm';
 
 export async function POST(request: Request) {
   const body = await request.json() as {
     agentId?: string;
     resource?: string;
-    paymentPayload?: string;  // base64-encoded ExactAvmPayloadV2
-    senderAddress?: string;   // Algorand address of the payer
-    negotiatedPrice?: number; // Optional: price agreed during negotiation
+    senderAddress?: string;
+    negotiatedPrice?: number;
   };
 
-  const { agentId, resource, paymentPayload, senderAddress, negotiatedPrice } = body;
+  const { agentId, resource, senderAddress, negotiatedPrice } = body;
 
   if (!agentId || !resource) {
     return Response.json(
       { error: 'Missing required fields: agentId, resource' },
       { status: 400 }
+    );
+  }
+
+  // Guard: AVM_PRIVATE_KEY and AVM_ADDRESS must be set
+  if (!process.env.AVM_PRIVATE_KEY || !process.env.AVM_ADDRESS) {
+    return Response.json(
+      { error: 'Server misconfigured: AVM_PRIVATE_KEY / AVM_ADDRESS not set' },
+      { status: 503 }
     );
   }
 
@@ -51,94 +60,84 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Agent not found' }, { status: 404 });
   }
 
-  // Guard: AVM_ADDRESS must be set for payment to work
-  if (!process.env.AVM_ADDRESS) {
-    return Response.json(
-      { error: 'Server misconfigured: AVM_ADDRESS environment variable is not set' },
-      { status: 503 }
-    );
-  }
-
   const price = negotiatedPrice != null && negotiatedPrice > 0
     ? negotiatedPrice
     : parseFloat(agent.base_price);
+
   const requirement = buildPaymentRequirement(resource, price, `Payment for ${agent.name}`);
 
-  // ── Step 1: No payment payload → return 402 ──────────────────────────────
-  if (!paymentPayload) {
-    const paymentRequiredHeader = buildPaymentRequiredHeader([requirement]);
+  try {
+    // ── Build + sign payment payload server-side ──────────────────────────
+    const signer = toClientAvmSigner(process.env.AVM_PRIVATE_KEY);
+    const avmScheme = new ExactAvmScheme(signer);
 
-    return new Response(
-      JSON.stringify({
-        error: 'Payment Required',
-        x402Version: 2,
-        accepts: [requirement],
-      }),
-      {
-        status: 402,
-        headers: {
-          'Content-Type': 'application/json',
-          'PAYMENT-REQUIRED': paymentRequiredHeader,
+    const paymentRequirements = {
+      scheme: requirement.scheme,
+      network: requirement.network as `${string}:${string}`,
+      payTo: requirement.payTo,
+      amount: requirement.amount,
+      asset: requirement.asset,
+      resource: requirement.resource,
+      description: requirement.description,
+      extra: requirement.extra ?? {},
+      maxTimeoutSeconds: 60,
+    };
+
+    const payloadResult = await avmScheme.createPaymentPayload(2, paymentRequirements);
+
+    // ── Verify with facilitator ───────────────────────────────────────────
+    const verification = await verifyPaymentWithFacilitator(payloadResult, requirement);
+    if (!verification.valid) {
+      return Response.json(
+        {
+          error: 'Payment verification failed',
+          reason: verification.reason,
         },
-      }
-    );
-  }
+        { status: 402 }
+      );
+    }
 
-  // ── Step 2: Verify payment with facilitator ───────────────────────────────
-  const verification = await verifyPaymentWithFacilitator(paymentPayload, requirement);
+    // ── Settle with facilitator ───────────────────────────────────────────
+    const settlement = await settlePaymentWithFacilitator(payloadResult, requirement);
+    if (!settlement.success) {
+      return Response.json(
+        { error: 'Payment settlement failed', reason: settlement.error },
+        { status: 500 }
+      );
+    }
 
-  if (!verification.valid) {
+    // ── Record transaction in Supabase ────────────────────────────────────
+    const { error: txError } = await supabase.from('transactions').insert({
+      tx_hash: settlement.txHash,
+      sender: senderAddress ?? process.env.AVM_ADDRESS,
+      receiver: agent.owner_wallet,
+      amount: price,
+      asa_id: getUsdcAsaId(),
+      resource,
+      x402_version: 2,
+      network: getNetwork(),
+      confirmed: true,
+    });
+
+    if (txError) {
+      console.error('Failed to record transaction:', txError.message);
+    }
+
+    return Response.json({
+      txHash: settlement.txHash,
+      confirmed: true,
+      amount: price,
+      asset: getUsdcAsaId(),
+      network: getNetwork(),
+      receiver: agent.owner_wallet,
+      resource,
+    });
+
+  } catch (err) {
+    console.error('Payment error:', err);
     return Response.json(
-      {
-        error: 'Payment verification failed',
-        reason: verification.reason,
-        x402Version: 2,
-        accepts: [requirement],
-      },
-      {
-        status: 402,
-        headers: {
-          'PAYMENT-REQUIRED': buildPaymentRequiredHeader([requirement]),
-        },
-      }
-    );
-  }
-
-  // ── Step 3: Settle payment with facilitator ───────────────────────────────
-  const settlement = await settlePaymentWithFacilitator(paymentPayload, requirement);
-
-  if (!settlement.success) {
-    return Response.json(
-      { error: 'Payment settlement failed', reason: settlement.error },
+      { error: `Payment failed: ${String(err)}` },
       { status: 500 }
     );
   }
-
-  // ── Step 4: Record transaction in Supabase ────────────────────────────────
-  const { error: txError } = await supabase.from('transactions').insert({
-    tx_hash: settlement.txHash,
-    sender: senderAddress ?? 'unknown',
-    receiver: agent.owner_wallet,
-    amount: price,
-    asa_id: getUsdcAsaId(),
-    resource,
-    x402_version: 2,
-    network: getNetwork(),
-    confirmed: true,
-  });
-
-  if (txError) {
-    console.error('Failed to record transaction:', txError.message);
-    // Don't fail the request — payment was settled on-chain
-  }
-
-  return Response.json({
-    txHash: settlement.txHash,
-    confirmed: true,
-    amount: price,
-    asset: getUsdcAsaId(),
-    network: getNetwork(),
-    receiver: agent.owner_wallet,
-    resource,
-  });
 }
