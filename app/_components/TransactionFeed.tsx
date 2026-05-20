@@ -7,12 +7,12 @@ interface TransactionFeedProps {
 }
 
 function truncateHash(hash: string, chars = 8) {
-  return `${hash.slice(0, chars)}...${hash.slice(-4)}`;
+  return `${hash.slice(0, chars)}…${hash.slice(-4)}`;
 }
 
 function truncateWallet(wallet: string, chars = 6) {
   if (!wallet || wallet === 'unknown') return 'unknown';
-  return `${wallet.slice(0, chars)}...${wallet.slice(-4)}`;
+  return `${wallet.slice(0, chars)}…${wallet.slice(-4)}`;
 }
 
 function timeAgo(timestamp: string) {
@@ -27,50 +27,134 @@ function timeAgo(timestamp: string) {
 
 export default function TransactionFeed({ transactions }: TransactionFeedProps) {
   const network = process.env.NEXT_PUBLIC_ALGORAND_NETWORK ?? 'testnet';
-  const explorerBase = network === 'mainnet'
-    ? 'https://allo.info/tx'
-    : 'https://testnet.explorer.perawallet.app/tx';
+  const explorerBase =
+    network === 'mainnet'
+      ? 'https://allo.info/tx'
+      : 'https://testnet.explorer.perawallet.app/tx';
 
   if (transactions.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12 rounded-xl border border-zinc-800 text-zinc-600 text-sm">
-        No transactions yet. Run a workflow to see payments here.
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '3rem 1rem',
+          borderRadius: '12px',
+          border: '1px solid var(--border-subtle)',
+          color: 'var(--text-muted)',
+          fontSize: '0.875rem',
+          textAlign: 'center',
+          gap: '0.5rem',
+        }}
+      >
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4, marginBottom: '0.25rem' }}>
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        No transactions yet.
+        <span style={{ fontSize: '0.8125rem' }}>Run a workflow to see payments here.</span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col divide-y divide-zinc-800 rounded-xl border border-zinc-800 overflow-hidden">
+    <div
+      className="card"
+      style={{ overflow: 'hidden', padding: 0 }}
+    >
       {transactions.map((tx, i) => (
         <div
           key={tx.id}
-          className="flex items-center gap-4 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 transition-colors relative"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.875rem',
+            padding: '0.875rem 1rem',
+            borderBottom: i < transactions.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+            background: 'var(--bg-surface)',
+            position: 'relative',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-elevated)'}
+          onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-surface)'}
         >
-          {i === 0 && (
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          )}
-          <div className="flex-1 min-w-0 pl-2">
-            <div className="flex items-center gap-2 flex-wrap">
+          {/* Left accent — newest pulse */}
+          <div
+            style={{
+              width: '3px',
+              height: '100%',
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              background: i === 0 ? 'var(--accent)' : 'transparent',
+              borderRadius: '0 2px 2px 0',
+              transition: 'background 0.3s',
+            }}
+          />
+
+          {/* Icon */}
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: i === 0 ? 'var(--accent-subtle)' : 'var(--bg-elevated)',
+              border: '1px solid',
+              borderColor: i === 0
+                ? 'color-mix(in srgb, var(--accent) 25%, transparent)'
+                : 'var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              color: i === 0 ? 'var(--accent)' : 'var(--text-muted)',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+
+          {/* Content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <a
                 href={`${explorerBase}/${tx.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs text-emerald-400 hover:text-emerald-300 underline"
+                className="mono-hash"
               >
                 {truncateHash(tx.txHash)}
               </a>
-              <span className="text-zinc-600 text-xs">•</span>
-              <span className="text-zinc-500 text-xs truncate">
+              <span style={{ color: 'var(--border-strong)', fontSize: '0.6875rem' }}>·</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {truncateWallet(tx.sender)} → {truncateWallet(tx.receiver)}
               </span>
             </div>
-            <div className="text-zinc-500 text-xs mt-0.5 truncate">{tx.resource}</div>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-emerald-400 font-mono text-sm font-semibold">
-              ${tx.amount.toFixed(4)} USDC
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {tx.resource}
             </div>
-            <div className="text-zinc-600 text-xs">{timeAgo(tx.createdAt)}</div>
+          </div>
+
+          {/* Amount + time */}
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div
+              style={{
+                fontSize: '0.875rem',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontWeight: '700',
+                color: 'var(--accent)',
+                lineHeight: '1.2',
+              }}
+            >
+              ${tx.amount.toFixed(4)}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+              {timeAgo(tx.createdAt)}
+            </div>
           </div>
         </div>
       ))}

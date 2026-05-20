@@ -5,88 +5,162 @@ import StatsBar from "./_components/StatsBar";
 const HOW_IT_WORKS = [
   {
     step: "01",
-    icon: "🗺️",
     title: "Plan",
     description:
       "Describe your task in plain language. Ollama (llama3) decomposes it into a structured multi-step workflow automatically.",
   },
   {
     step: "02",
-    icon: "🔍",
     title: "Discover & Negotiate",
     description:
       "Agents are scored by reputation, speed, and cost. Prices are negotiated autonomously using deepseek-r1 or rule-based logic.",
   },
   {
     step: "03",
-    icon: "⚡",
     title: "Pay & Execute",
     description:
       "Payment flows over Algorand via the x402 protocol — USDC ASA transfer, verified by GoPlausible facilitator, 2.8s finality.",
   },
 ];
 
+const TECH_STACK = [
+  { label: "Protocol", value: "x402", sub: "HTTP-native payments" },
+  { label: "Blockchain", value: "Algorand", sub: "2.8s finality · Testnet" },
+  { label: "Currency", value: "USDC", sub: "ASA 10458941" },
+  { label: "AI Engine", value: "Ollama", sub: "llama3 · deepseek-r1" },
+];
+
 export default async function HomePage() {
-  // Fetch real stats from Supabase
   const supabase = await createClient();
 
   const [agentsRes, jobsRes, txRes] = await Promise.all([
-    supabase.from('agents').select('id', { count: 'exact', head: true }),
-    supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-    supabase.from('transactions').select('amount'),
+    supabase.from("agents").select("id", { count: "exact", head: true }),
+    supabase
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "completed"),
+    supabase.from("transactions").select("amount"),
   ]);
 
   const totalAgents = agentsRes.count ?? 0;
   const totalJobs = jobsRes.count ?? 0;
   const totalVolume = (txRes.data ?? []).reduce(
-    (sum, tx) => sum + parseFloat(tx.amount ?? '0'),
+    (sum, tx) => sum + parseFloat(tx.amount ?? "0"),
     0
   );
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-4 py-28 sm:py-36 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-500/5 rounded-full blur-3xl" />
-        </div>
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          padding: "7rem 1rem 5rem",
+          textAlign: "center",
+        }}
+      >
+        {/* Background glow */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -60%)",
+            width: "800px",
+            height: "500px",
+            background:
+              "radial-gradient(ellipse, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 65%)",
+            borderRadius: "50%",
+            filter: "blur(60px)",
+            pointerEvents: "none",
+          }}
+        />
 
-        <div className="relative max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            x402 on Algorand · USDC payments · Ollama AI
+        <div
+          style={{ position: "relative", maxWidth: "780px", margin: "0 auto" }}
+        >
+          {/* Badge */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.3rem 0.875rem",
+              borderRadius: "9999px",
+              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+              background: "var(--accent-subtle)",
+              marginBottom: "2rem",
+            }}
+          >
+            <span className="live-dot" />
+            <span
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: "600",
+                color: "var(--accent)",
+                letterSpacing: "0.04em",
+              }}
+            >
+              x402 on Algorand · USDC Payments · Ollama AI
+            </span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-zinc-100 leading-tight tracking-tight">
-            Economic Infrastructure for{" "}
-            <span className="text-emerald-400">Autonomous AI</span> Systems
+          {/* Headline */}
+          <h1
+            className="text-display-xl"
+            style={{ color: "var(--text-primary)", marginBottom: "0.25rem" }}
+          >
+            AUTOMATE.{" "}
+            <em style={{ color: "var(--accent)", fontStyle: "italic" }}>
+              VERIFY.
+            </em>{" "}
+            OWN.
           </h1>
 
-          <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            Agents discover each other, negotiate prices, and settle USDC payments
-            on Algorand — all without human intervention. Powered by the x402
-            open payment protocol.
+          <p
+            style={{
+              fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
+              color: "var(--text-secondary)",
+              maxWidth: "600px",
+              margin: "1.75rem auto 0",
+              lineHeight: "1.65",
+            }}
+          >
+            Agents discover each other, negotiate prices, and settle USDC
+            payments on Algorand — all without human intervention. Powered by
+            the x402 open payment protocol.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link
-              href="/marketplace"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-sm transition-colors"
-            >
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.75rem",
+              marginTop: "2.5rem",
+            }}
+          >
+            <Link href="/marketplace" className="btn-primary">
               Browse Marketplace →
             </Link>
-            <Link
-              href="/workflow"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-300 font-semibold text-sm transition-colors"
-            >
+            <Link href="/workflow" className="btn-ghost">
               Try Workflow Builder
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Live stats from Supabase */}
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16">
+      {/* ── Stats ────────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          maxWidth: "1200px",
+          width: "100%",
+          margin: "0 auto",
+          padding: "0 1.5rem 4rem",
+        }}
+      >
         <StatsBar
           totalAgents={totalAgents}
           totalJobs={totalJobs}
@@ -94,69 +168,330 @@ export default async function HomePage() {
         />
       </section>
 
-      {/* How it works */}
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-100">How it works</h2>
-          <p className="text-zinc-500 mt-2">Three steps from request to result</p>
+      {/* ── How it works ─────────────────────────────────────────────────── */}
+      <section
+        style={{
+          maxWidth: "1200px",
+          width: "100%",
+          margin: "0 auto",
+          padding: "0 1.5rem 5rem",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <div className="section-label" style={{ marginBottom: "0.5rem" }}>
+            How it works
+          </div>
+          <h2
+            className="text-display-lg"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Everything to manage{" "}
+            <em style={{ fontStyle: "italic" }}>your subscription.</em>
+          </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
           {HOW_IT_WORKS.map((item) => (
             <div
               key={item.step}
-              className="relative flex flex-col gap-4 p-6 rounded-xl border border-zinc-800 bg-zinc-900"
+              className="card"
+              style={{ padding: "1.75rem" }}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{item.icon}</span>
-                <span className="text-xs font-mono text-zinc-600 font-bold">{item.step}</span>
+              <div
+                style={{
+                  fontFamily: "Playfair Display, Georgia, serif",
+                  fontSize: "3rem",
+                  fontWeight: "900",
+                  color: "var(--border-strong)",
+                  lineHeight: "1",
+                  marginBottom: "1rem",
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                {item.step}
               </div>
-              <h3 className="text-lg font-semibold text-zinc-100">{item.title}</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">{item.description}</p>
+              <h3
+                style={{
+                  fontSize: "1.0625rem",
+                  fontWeight: "600",
+                  color: "var(--text-primary)",
+                  marginBottom: "0.625rem",
+                }}
+              >
+                {item.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--text-secondary)",
+                  lineHeight: "1.65",
+                }}
+              >
+                {item.description}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Tech stack callout */}
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+      {/* ── Metrics strip ────────────────────────────────────────────────── */}
+      <section
+        style={{
+          borderTop: "1px solid var(--border-subtle)",
+          borderBottom: "1px solid var(--border-subtle)",
+          background: "var(--bg-surface)",
+          padding: "3rem 1.5rem",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: "2rem",
+            textAlign: "center",
+          }}
+        >
           {[
-            { label: 'Payments', value: 'x402 Protocol', sub: 'HTTP-native' },
-            { label: 'Blockchain', value: 'Algorand', sub: '2.8s finality' },
-            { label: 'Currency', value: 'USDC (ASA)', sub: 'Testnet: 10458941' },
-            { label: 'AI Engine', value: 'Ollama', sub: 'llama3 · deepseek-r1' },
-          ].map(item => (
-            <div key={item.label} className="space-y-1">
-              <div className="text-xs text-zinc-600 uppercase tracking-wide">{item.label}</div>
-              <div className="text-zinc-100 font-semibold">{item.value}</div>
-              <div className="text-xs text-zinc-500">{item.sub}</div>
+            { value: "2.8s", label: "Block Finality" },
+            { value: "<$0.001", label: "Tx Fee (ALGO)" },
+            { value: "12", label: "Supported Task Types" },
+          ].map((m) => (
+            <div key={m.label}>
+              <div
+                style={{
+                  fontFamily: "Playfair Display, Georgia, serif",
+                  fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
+                  fontWeight: "900",
+                  color: "var(--accent)",
+                  letterSpacing: "-0.04em",
+                  lineHeight: "1",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {m.value}
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-tertiary)",
+                  fontWeight: "500",
+                }}
+              >
+                {m.label}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-zinc-800 bg-zinc-900">
-        <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-5">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-100">
-            Ready to build autonomous pipelines?
+      {/* ── Tech Stack ───────────────────────────────────────────────────── */}
+      <section
+        style={{
+          maxWidth: "1200px",
+          width: "100%",
+          margin: "0 auto",
+          padding: "5rem 1.5rem",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+          <div className="section-label">Built for the</div>
+          <h2
+            className="text-display-lg"
+            style={{ color: "var(--text-primary)" }}
+          >
+            global{" "}
+            <em style={{ fontStyle: "italic", color: "var(--accent)" }}>
+              digital economy.
+            </em>
           </h2>
-          <p className="text-zinc-400">
-            Connect your Pera Wallet, browse agents, compose workflows, and watch
-            USDC payments settle on Algorand in real time.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/marketplace"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold transition-colors"
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "1rem",
+          }}
+        >
+          {TECH_STACK.map((item) => (
+            <div
+              key={item.label}
+              className="card card-hover"
+              style={{ padding: "1.5rem", textAlign: "center" }}
             >
+              <div
+                style={{
+                  fontSize: "0.6875rem",
+                  fontWeight: "700",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "var(--text-muted)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {item.label}
+              </div>
+              <div
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: "700",
+                  color: "var(--text-primary)",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                {item.value}
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-tertiary)",
+                }}
+              >
+                {item.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Four steps ───────────────────────────────────────────────────── */}
+      <section
+        style={{
+          borderTop: "1px solid var(--border-subtle)",
+          background: "var(--bg-surface)",
+          padding: "5rem 1.5rem",
+        }}
+      >
+        <div
+          style={{ maxWidth: "1200px", margin: "0 auto" }}
+        >
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <div className="section-label">Workflow</div>
+            <h2
+              className="text-display-lg"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Four steps to{" "}
+              <em style={{ fontStyle: "italic" }}>autonomous payments</em>
+            </h2>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "2rem",
+            }}
+          >
+            {[
+              {
+                n: "01",
+                title: "Connect Wallet",
+                desc: "Link your Pera Wallet to authenticate and authorize USDC payments on Algorand testnet.",
+              },
+              {
+                n: "02",
+                title: "Define Objective",
+                desc: "Describe your task in plain language. The AI planner decomposes it into structured steps.",
+              },
+              {
+                n: "03",
+                title: "Agent Discovery",
+                desc: "Agents are ranked by reputation and cost. Prices are negotiated autonomously.",
+              },
+              {
+                n: "04",
+                title: "Settle & Execute",
+                desc: "USDC transfers settle on-chain in 2.8 seconds via x402. Results delivered immediately.",
+              },
+            ].map((s) => (
+              <div key={s.n} style={{ position: "relative" }}>
+                <div
+                  style={{
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontSize: "0.75rem",
+                    fontWeight: "600",
+                    color: "var(--text-muted)",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  {s.n}
+                </div>
+                <h3
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: "600",
+                    color: "var(--text-primary)",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--text-secondary)",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  {s.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: "2.5rem" }}>
+            <Link href="/workflow" className="btn-primary">
+              Open Workflow Builder →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ──────────────────────────────────────────────────────────── */}
+      <section style={{ padding: "6rem 1.5rem", textAlign: "center" }}>
+        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+          <h2
+            className="text-display-xl"
+            style={{ color: "var(--text-primary)", marginBottom: "1.25rem" }}
+          >
+            TAKE{" "}
+            <em style={{ fontStyle: "italic", color: "var(--accent)" }}>
+              CONTROL.
+            </em>
+          </h2>
+          <p
+            style={{
+              fontSize: "1rem",
+              color: "var(--text-secondary)",
+              marginBottom: "2rem",
+              lineHeight: "1.65",
+            }}
+          >
+            Connect your Pera Wallet, browse agents, compose workflows, and
+            watch USDC payments settle on Algorand in real time.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.75rem",
+            }}
+          >
+            <Link href="/marketplace" className="btn-primary">
               Open Marketplace →
             </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-lg border border-zinc-700 hover:border-zinc-500 text-zinc-300 font-semibold transition-colors"
-            >
+            <Link href="/register" className="btn-ghost">
               Register Your Agent
             </Link>
           </div>

@@ -10,6 +10,31 @@ const TASK_SUGGESTIONS = [
   'planning', 'workflow', 'coding', 'translation',
 ];
 
+function getModelColor(model: string): string {
+  if (model.includes('llama')) return '#8b5cf6';
+  if (model.includes('deepseek')) return '#3b82f6';
+  if (model.includes('mistral')) return '#f59e0b';
+  if (model.includes('phi')) return '#10b981';
+  if (model.includes('gemma')) return '#ec4899';
+  return '#6b7280';
+}
+
+function InputField({
+  label, id, required, children,
+}: { label: string; id: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+      <label
+        htmlFor={id}
+        style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'var(--text-secondary)' }}
+      >
+        {label}{required && <span style={{ color: 'var(--accent)', marginLeft: '2px' }}>*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 export default function RegisterAgentPage() {
   const { address, isConnected, connect } = useWallet();
 
@@ -79,29 +104,75 @@ export default function RegisterAgentPage() {
     }
   }
 
+  /* ── Success state ─────────────────────────────────────────────────── */
   if (status === 'success' && result) {
     return (
-      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-16 text-center space-y-6">
-        <div className="text-5xl">🎉</div>
-        <h1 className="text-2xl font-bold text-zinc-100">Agent Registered!</h1>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/10 p-6 text-left space-y-2">
-          <div className="text-sm text-zinc-400">Agent ID</div>
-          <div className="font-mono text-emerald-400 text-sm break-all">{result.id}</div>
-          <div className="text-sm text-zinc-400 mt-3">Name</div>
-          <div className="text-zinc-200 font-semibold">{result.name}</div>
-          <div className="text-sm text-zinc-400 mt-3">Owner Wallet</div>
-          <div className="font-mono text-zinc-300 text-xs break-all">{address}</div>
+      <div
+        style={{
+          maxWidth: '600px',
+          width: '100%',
+          margin: '0 auto',
+          padding: '4rem 1.5rem',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1.5rem',
+        }}
+      >
+        <div
+          style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'var(--accent-subtle)',
+            border: '2px solid var(--accent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--accent)',
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20,6 9,17 4,12"/>
+          </svg>
         </div>
-        <p className="text-zinc-500 text-sm">
-          Your agent is now listed in the marketplace and can receive x402 payments on Algorand.
-        </p>
+
+        <div>
+          <h1 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: '2rem', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '0.375rem' }}>
+            Agent Registered!
+          </h1>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+            Your agent is now live in the marketplace and can receive x402 payments on Algorand.
+          </p>
+        </div>
+
+        <div
+          className="card"
+          style={{ width: '100%', padding: '1.25rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}
+        >
+          <div>
+            <div style={{ fontSize: '0.6875rem', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Agent ID</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8125rem', color: 'var(--accent)', wordBreak: 'break-all' }}>{result.id}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.6875rem', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Name</div>
+            <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'var(--text-primary)' }}>{result.name}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.6875rem', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Owner Wallet</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>{address}</div>
+          </div>
+        </div>
+
         <button
+          id="register-another-btn"
           onClick={() => {
             setStatus('idle');
             setResult(null);
             setForm({ name: '', description: '', endpoint: 'http://localhost:11434', model: 'llama3', basePrice: '0.01', latency: '1000', tasks: [], customTask: '' });
           }}
-          className="px-6 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-zinc-200 transition-colors text-sm"
+          className="btn-ghost"
         >
           Register another agent
         </button>
@@ -109,167 +180,394 @@ export default function RegisterAgentPage() {
     );
   }
 
+  /* ── Main form ─────────────────────────────────────────────────────── */
   return (
-    <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-zinc-100">Register an Agent</h1>
-        <p className="text-zinc-500 mt-1 text-sm">
-          List your AI agent in the marketplace to receive x402 payments on Algorand
+    <div
+      style={{
+        maxWidth: '1000px',
+        width: '100%',
+        margin: '0 auto',
+        padding: '2.5rem 1.5rem 4rem',
+      }}
+    >
+      {/* Page header */}
+      <div
+        style={{
+          marginBottom: '2rem',
+          paddingBottom: '1.5rem',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div className="section-label" style={{ marginBottom: '0.375rem' }}>Agent Registration</div>
+        <h1
+          style={{
+            fontFamily: 'Playfair Display, Georgia, serif',
+            fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+            fontWeight: '700',
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.02em',
+            lineHeight: '1.1',
+          }}
+        >
+          List Your Agent
+        </h1>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+          Publish your AI agent in the marketplace to receive x402 payments on Algorand
         </p>
       </div>
 
+      {/* Not connected */}
       {!isConnected ? (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center space-y-4">
-          <p className="text-zinc-400">Connect your Pera Wallet to register an agent.</p>
-          <p className="text-zinc-600 text-sm">Your Algorand address will be the owner wallet that receives payments.</p>
-          <button
-            onClick={connect}
-            className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-sm transition-colors"
+        <div
+          className="card"
+          style={{
+            padding: '3rem',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+          }}
+        >
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '14px',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-muted)',
+            }}
           >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.375rem' }}>
+              Wallet required
+            </p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
+              Your Algorand address will be the owner wallet that receives payments.
+            </p>
+          </div>
+          <button id="connect-wallet-register-btn" onClick={connect} className="btn-primary">
             Connect Pera Wallet
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Wallet info */}
-          <div className="px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <div>
-              <div className="text-xs text-zinc-500">Owner wallet (payments receiver)</div>
-              <div className="font-mono text-sm text-zinc-300 break-all">{address}</div>
-            </div>
-          </div>
-
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-300">Agent Name *</label>
-            <input
-              required
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. ResearchAgent"
-              className="w-full px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 placeholder-zinc-600 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30"
-            />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-300">Description *</label>
-            <textarea
-              required
-              rows={3}
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="What does your agent do?"
-              className="w-full px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 placeholder-zinc-600 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 resize-none"
-            />
-          </div>
-
-          {/* Endpoint + Model */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Ollama Endpoint *</label>
-              <input
-                required
-                value={form.endpoint}
-                onChange={e => setForm(f => ({ ...f, endpoint: e.target.value }))}
-                placeholder="http://localhost:11434"
-                className="w-full px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 placeholder-zinc-600 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30"
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: '2rem', alignItems: 'start' }}>
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Wallet info */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.875rem 1rem',
+                borderRadius: '10px',
+                border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
+                background: 'var(--accent-subtle)',
+              }}
+            >
+              <span
+                style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }}
               />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.6875rem', fontWeight: '600', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.125rem' }}>
+                  Owner wallet (payments receiver)
+                </div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8125rem', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {address}
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Model</label>
-              <select
-                value={form.model}
-                onChange={e => setForm(f => ({ ...f, model: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 text-sm focus:outline-none focus:border-emerald-500/60"
-              >
-                {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-          </div>
 
-          {/* Price + Latency */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Base Price (USDC) *</label>
-              <input
-                required
-                type="number"
-                step="0.0001"
-                min="0.0001"
-                value={form.basePrice}
-                onChange={e => setForm(f => ({ ...f, basePrice: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Avg Latency (ms)</label>
-              <input
-                type="number"
-                min="100"
-                value={form.latency}
-                onChange={e => setForm(f => ({ ...f, latency: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30"
-              />
-            </div>
-          </div>
+            {/* Basic info */}
+            <div
+              className="card"
+              style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            >
+              <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.125rem' }}>
+                Basic Info
+              </div>
 
-          {/* Supported tasks */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-300">Supported Tasks</label>
-            <div className="flex flex-wrap gap-2">
-              {TASK_SUGGESTIONS.map(task => (
+              <InputField label="Agent Name" id="agent-name" required>
+                <input
+                  id="agent-name"
+                  required
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="e.g. ResearchAgent"
+                  className="input focus-ring"
+                />
+              </InputField>
+
+              <InputField label="Description" id="agent-desc" required>
+                <textarea
+                  id="agent-desc"
+                  required
+                  rows={3}
+                  value={form.description}
+                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="What does your agent do?"
+                  className="input focus-ring"
+                  style={{ resize: 'none' }}
+                />
+              </InputField>
+            </div>
+
+            {/* Technical */}
+            <div
+              className="card"
+              style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            >
+              <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.125rem' }}>
+                Technical Config
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <InputField label="Ollama Endpoint" id="agent-endpoint" required>
+                  <input
+                    id="agent-endpoint"
+                    required
+                    value={form.endpoint}
+                    onChange={e => setForm(f => ({ ...f, endpoint: e.target.value }))}
+                    placeholder="http://localhost:11434"
+                    className="input focus-ring"
+                  />
+                </InputField>
+
+                <InputField label="Model" id="agent-model">
+                  <select
+                    id="agent-model"
+                    value={form.model}
+                    onChange={e => setForm(f => ({ ...f, model: e.target.value }))}
+                    className="input focus-ring"
+                  >
+                    {MODELS.map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </InputField>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <InputField label="Base Price (USDC)" id="agent-price" required>
+                  <input
+                    id="agent-price"
+                    required
+                    type="number"
+                    step="0.0001"
+                    min="0.0001"
+                    value={form.basePrice}
+                    onChange={e => setForm(f => ({ ...f, basePrice: e.target.value }))}
+                    className="input focus-ring"
+                  />
+                </InputField>
+
+                <InputField label="Avg Latency (ms)" id="agent-latency">
+                  <input
+                    id="agent-latency"
+                    type="number"
+                    min="100"
+                    value={form.latency}
+                    onChange={e => setForm(f => ({ ...f, latency: e.target.value }))}
+                    className="input focus-ring"
+                  />
+                </InputField>
+              </div>
+            </div>
+
+            {/* Supported tasks */}
+            <div
+              className="card"
+              style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}
+            >
+              <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: 'var(--text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Supported Tasks
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {TASK_SUGGESTIONS.map(task => {
+                  const active = form.tasks.includes(task);
+                  return (
+                    <button
+                      key={task}
+                      type="button"
+                      onClick={() => toggleTask(task)}
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        border: '1px solid',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        background: active ? 'var(--accent-subtle)' : 'transparent',
+                        borderColor: active
+                          ? 'color-mix(in srgb, var(--accent) 40%, transparent)'
+                          : 'var(--border-default)',
+                        color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                      }}
+                    >
+                      {active ? '✓ ' : ''}{task}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  id="custom-task-input"
+                  value={form.customTask}
+                  onChange={e => setForm(f => ({ ...f, customTask: e.target.value }))}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomTask(); } }}
+                  placeholder="Add custom task…"
+                  className="input focus-ring"
+                  style={{ flex: 1, fontSize: '0.8125rem' }}
+                />
                 <button
-                  key={task}
+                  id="add-task-btn"
                   type="button"
-                  onClick={() => toggleTask(task)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    form.tasks.includes(task)
-                      ? 'border-emerald-500/60 bg-emerald-950/30 text-emerald-400'
-                      : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
-                  }`}
+                  onClick={addCustomTask}
+                  className="btn-ghost"
+                  style={{ padding: '0.625rem 1rem', borderRadius: '8px', fontSize: '0.8125rem' }}
                 >
-                  {task}
+                  Add
                 </button>
-              ))}
+              </div>
             </div>
-            <div className="flex gap-2 mt-2">
-              <input
-                value={form.customTask}
-                onChange={e => setForm(f => ({ ...f, customTask: e.target.value }))}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomTask(); } }}
-                placeholder="Add custom task..."
-                className="flex-1 px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 placeholder-zinc-600 text-xs focus:outline-none focus:border-emerald-500/60"
-              />
-              <button
-                type="button"
-                onClick={addCustomTask}
-                className="px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200 text-xs transition-colors"
+
+            {/* Error */}
+            {error && (
+              <div
+                style={{
+                  padding: '0.875rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)',
+                  background: 'var(--red-subtle)',
+                  color: 'var(--red)',
+                  fontSize: '0.875rem',
+                }}
               >
-                Add
-              </button>
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              id="register-agent-submit-btn"
+              type="submit"
+              disabled={status === 'submitting' || !form.name || !form.description}
+              className="btn-primary"
+              style={{ width: '100%', justifyContent: 'center', padding: '0.875rem', borderRadius: '10px' }}
+            >
+              {status === 'submitting' ? (
+                <>
+                  <span className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }} />
+                  Registering…
+                </>
+              ) : 'Register Agent on Marketplace'}
+            </button>
+          </form>
+
+          {/* Preview card */}
+          <div style={{ position: 'sticky', top: '80px' }}>
+            <div className="section-label" style={{ marginBottom: '0.75rem' }}>Preview</div>
+            <div
+              className="card"
+              style={{ padding: '1.375rem', overflow: 'hidden', position: 'relative' }}
+            >
+              {/* Model stripe */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: `linear-gradient(90deg, ${getModelColor(form.model)}, transparent)`,
+                  opacity: 0.6,
+                  borderRadius: '12px 12px 0 0',
+                }}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginTop: '0.375rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.375rem' }}>
+                    {form.name || 'Agent Name'}
+                  </div>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.6875rem',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border-default)',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: getModelColor(form.model) }} />
+                    {form.model}
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '1rem', fontFamily: 'JetBrains Mono, monospace', fontWeight: '700', color: 'var(--accent)' }}>
+                    ${parseFloat(form.basePrice || '0').toFixed(4)}
+                  </div>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>USDC / task</div>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: '0.875rem 0', lineHeight: '1.6' }}>
+                {form.description || 'Agent description will appear here…'}
+              </p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                {form.tasks.slice(0, 5).map(t => (
+                  <span key={t} className="badge badge-neutral">{t}</span>
+                ))}
+                {form.tasks.length === 0 && (
+                  <span className="badge badge-neutral" style={{ opacity: 0.5 }}>task tags</span>
+                )}
+              </div>
+
+              <div style={{ marginTop: '0.875rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                <span>{parseInt(form.latency || '0').toLocaleString()}ms latency</span>
+                <span>0 jobs</span>
+              </div>
+            </div>
+
+            {/* Info box */}
+            <div
+              style={{
+                marginTop: '1rem',
+                padding: '0.875rem',
+                borderRadius: '10px',
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-elevated)',
+                fontSize: '0.8125rem',
+                color: 'var(--text-tertiary)',
+                lineHeight: '1.6',
+              }}
+            >
+              <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.375rem' }}>
+                After registration
+              </strong>
+              Your agent will be discoverable in the marketplace and can be hired by workflow builders. Payments settle via x402 to your Algorand wallet.
             </div>
           </div>
-
-          {error && (
-            <div className="px-4 py-3 rounded-lg border border-red-700/40 bg-red-950/20 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={status === 'submitting' || !form.name || !form.description}
-            className="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-950 font-semibold text-sm transition-colors"
-          >
-            {status === 'submitting' ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin inline-block">⟳</span> Registering...
-              </span>
-            ) : 'Register Agent on Marketplace'}
-          </button>
-        </form>
+        </div>
       )}
     </div>
   );

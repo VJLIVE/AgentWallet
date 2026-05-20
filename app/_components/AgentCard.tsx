@@ -8,75 +8,221 @@ interface AgentCardProps {
   selected?: boolean;
 }
 
+function getModelClass(model: string): string {
+  const m = model.toLowerCase();
+  if (m.includes('llama')) return 'model-llama3';
+  if (m.includes('deepseek')) return 'model-deepseek';
+  if (m.includes('mistral')) return 'model-mistral';
+  if (m.includes('phi')) return 'model-phi';
+  if (m.includes('gemma')) return 'model-gemma';
+  return 'model-default';
+}
+
+function getModelColor(model: string): string {
+  const m = model.toLowerCase();
+  if (m.includes('llama')) return '#8b5cf6';
+  if (m.includes('deepseek')) return '#3b82f6';
+  if (m.includes('mistral')) return '#f59e0b';
+  if (m.includes('phi')) return '#10b981';
+  if (m.includes('gemma')) return '#ec4899';
+  return '#6b7280';
+}
+
 function StarRating({ value }: { value: number }) {
-  const full = Math.floor(value);
-  const partial = value - full;
   return (
-    <span className="text-amber-400 text-sm" aria-label={`${value} stars`}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
       {Array.from({ length: 5 }, (_, i) => {
-        if (i < full) return <span key={i}>★</span>;
-        if (i === full && partial >= 0.5) return <span key={i} className="opacity-50">★</span>;
-        return <span key={i} className="text-zinc-600">★</span>;
+        const filled = i < Math.floor(value);
+        const partial = !filled && i === Math.floor(value) && value % 1 >= 0.5;
+        return (
+          <svg
+            key={i}
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill={filled || partial ? 'var(--amber)' : 'none'}
+            stroke="var(--amber)"
+            strokeWidth="1.5"
+            opacity={partial ? 0.5 : 1}
+          >
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+          </svg>
+        );
       })}
-      <span className="ml-1 text-zinc-400 font-mono">{value.toFixed(1)}</span>
-    </span>
+      <span
+        style={{
+          fontSize: '0.75rem',
+          fontFamily: 'JetBrains Mono, monospace',
+          color: 'var(--text-secondary)',
+          marginLeft: '0.125rem',
+        }}
+      >
+        {value.toFixed(1)}
+      </span>
+    </div>
   );
 }
 
 export default function AgentCard({ agent, onSelect, selected }: AgentCardProps) {
+  const modelColor = getModelColor(agent.model);
+
   return (
     <div
       onClick={() => onSelect?.(agent)}
-      className={`
-        relative flex flex-col gap-3 p-5 rounded-xl border bg-zinc-900 transition-all duration-200
-        ${onSelect ? 'cursor-pointer hover:bg-zinc-800 hover:border-zinc-600' : ''}
-        ${selected
-          ? 'border-emerald-500 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-900/20'
-          : 'border-zinc-800'
-        }
-      `}
+      className={`card ${onSelect ? 'card-hover' : ''}`}
+      style={{
+        position: 'relative',
+        padding: '1.375rem',
+        cursor: onSelect ? 'pointer' : 'default',
+        borderColor: selected
+          ? 'var(--accent)'
+          : undefined,
+        boxShadow: selected
+          ? '0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent)'
+          : undefined,
+        transition: 'all 0.2s ease',
+        overflow: 'hidden',
+      }}
     >
+      {/* Model color stripe */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          background: `linear-gradient(90deg, ${modelColor}, transparent)`,
+          opacity: 0.6,
+          borderRadius: '12px 12px 0 0',
+        }}
+      />
+
+      {/* Selected badge */}
       {selected && (
-        <span className="absolute top-3 right-3 text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full px-2 py-0.5">
-          Selected
-        </span>
+        <div
+          className="badge badge-accent"
+          style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+        >
+          ✓ Selected
+        </div>
       )}
 
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="text-zinc-100 font-semibold text-base leading-tight">{agent.name}</h3>
-          <span className="inline-block mt-1 text-xs font-mono bg-zinc-800 text-zinc-400 border border-zinc-700 rounded px-2 py-0.5">
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginTop: '0.25rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3
+            style={{
+              fontSize: '0.9375rem',
+              fontWeight: '600',
+              color: 'var(--text-primary)',
+              lineHeight: '1.3',
+              marginBottom: '0.375rem',
+            }}
+          >
+            {agent.name}
+          </h3>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              padding: '0.15rem 0.5rem',
+              borderRadius: '4px',
+              fontSize: '0.6875rem',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontWeight: '500',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: modelColor,
+                flexShrink: 0,
+              }}
+            />
             {agent.model}
           </span>
         </div>
-        <div className="text-right shrink-0">
-          <div className="text-emerald-400 font-mono font-semibold text-sm">
-            ${agent.pricing.basePrice.toFixed(4)} USDC
+
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div
+            style={{
+              fontSize: '1rem',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontWeight: '600',
+              color: 'var(--accent)',
+              lineHeight: '1.2',
+            }}
+          >
+            ${agent.pricing.basePrice.toFixed(4)}
           </div>
-          <div className="text-zinc-500 text-xs">per task</div>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+            USDC / task
+          </div>
         </div>
       </div>
 
-      <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2">{agent.description}</p>
+      {/* Description */}
+      <p
+        style={{
+          fontSize: '0.8125rem',
+          color: 'var(--text-secondary)',
+          lineHeight: '1.6',
+          margin: '0.875rem 0',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {agent.description}
+      </p>
 
-      <div className="flex items-center justify-between">
+      {/* Metrics row */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '0.875rem',
+        }}
+      >
         <StarRating value={agent.reputation} />
-        <span className="text-zinc-500 text-xs font-mono">{agent.latency}ms</span>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-zinc-500">
-        <span>{agent.totalJobs.toLocaleString()} jobs completed</span>
-      </div>
-
-      <div className="flex flex-wrap gap-1.5 mt-1">
-        {agent.supportedTasks.map((task) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+            {agent.latency}ms
+          </span>
           <span
-            key={task}
-            className="text-xs bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-full px-2 py-0.5"
-          >
+            style={{
+              width: '1px',
+              height: '10px',
+              background: 'var(--border-default)',
+            }}
+          />
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+            {agent.totalJobs.toLocaleString()} jobs
+          </span>
+        </div>
+      </div>
+
+      {/* Task tags */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+        {agent.supportedTasks.slice(0, 4).map((task) => (
+          <span key={task} className="badge badge-neutral">
             {task}
           </span>
         ))}
+        {agent.supportedTasks.length > 4 && (
+          <span className="badge badge-neutral">
+            +{agent.supportedTasks.length - 4}
+          </span>
+        )}
       </div>
     </div>
   );
