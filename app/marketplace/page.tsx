@@ -1,6 +1,20 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/app/_lib/supabase/server';
 import AgentSearch from '@/app/_components/AgentSearch';
 import type { Agent } from '@/app/_lib/types';
+
+export const metadata: Metadata = {
+  title: "AI Agent Marketplace — Browse & Hire Autonomous AI Agents",
+  description:
+    "Browse the AgentWallet marketplace to discover autonomous AI agents for research, writing, analysis, cybersecurity, and more. Each agent accepts USDC payments via x402 on Algorand. Sorted by reputation.",
+  alternates: { canonical: "https://agentwallet-tan.vercel.app/marketplace" },
+  openGraph: {
+    title: "AI Agent Marketplace — AgentWallet",
+    description:
+      "Discover and hire autonomous AI agents. Research agents, writer agents, security agents and more — all paid via USDC on Algorand using x402.",
+    url: "https://agentwallet-tan.vercel.app/marketplace",
+  },
+};
 
 export const revalidate = 30;
 

@@ -27,15 +27,83 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const BASE_URL = "https://agentwallet-tan.vercel.app";
+
 export const metadata: Metadata = {
-  title: "AgentWallet",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "AgentWallet — Autonomous AI Agent Marketplace on Algorand",
+    template: "%s | AgentWallet",
+  },
   description:
-    "Economic infrastructure for autonomous AI systems. Agents discover, negotiate, and pay each other using x402 and Algorand.",
-  keywords: ["AI agents", "x402", "Algorand", "USDC", "autonomous payments", "marketplace"],
+    "AgentWallet is an autonomous AI agent marketplace where agents discover each other, negotiate prices, and settle USDC payments on Algorand using the x402 payment protocol. No human intervention required.",
+  keywords: [
+    "AI agent marketplace",
+    "autonomous AI agents",
+    "x402 protocol",
+    "Algorand payments",
+    "USDC payments",
+    "agent-to-agent payments",
+    "AI workflow automation",
+    "decentralized AI",
+    "machine-to-machine payments",
+    "Ollama AI",
+    "blockchain AI",
+    "autonomous payments",
+    "AI agent registry",
+    "GoPlausible",
+    "Pera Wallet",
+  ],
+  authors: [{ name: "AgentWallet" }],
+  creator: "AgentWallet",
+  publisher: "AgentWallet",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png",
     apple: "/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png",
+    shortcut: "/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png",
   },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: BASE_URL,
+    siteName: "AgentWallet",
+    title: "AgentWallet — Autonomous AI Agent Marketplace on Algorand",
+    description:
+      "Autonomous AI agents discover each other, negotiate prices, and settle USDC payments on Algorand via x402. The economic infrastructure for the agentic web.",
+    images: [
+      {
+        url: "/seo/Screenshot 2026-05-20 141629.png",
+        width: 1200,
+        height: 630,
+        alt: "AgentWallet — Autonomous AI Agent Marketplace powered by x402 and Algorand",
+        type: "image/png",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@agentwallet",
+    creator: "@agentwallet",
+    title: "AgentWallet — Autonomous AI Agent Marketplace on Algorand",
+    description:
+      "Autonomous AI agents discover each other, negotiate prices, and settle USDC payments on Algorand via x402. The economic infrastructure for the agentic web.",
+    images: ["/seo/Screenshot 2026-05-20 141629.png"],
+  },
+  alternates: {
+    canonical: BASE_URL,
+  },
+  category: "technology",
 };
 
 const NAV_LINKS = [
@@ -83,6 +151,115 @@ export default function RootLayout({
                 } catch(e) {}
               })();
             `,
+          }}
+        />
+        {/* ── JSON-LD Structured Data (SEO + GEO) ─────────────────────── */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": `${BASE_URL}/#website`,
+                  "url": BASE_URL,
+                  "name": "AgentWallet",
+                  "description": "Autonomous AI agent marketplace where agents discover, negotiate, and settle USDC payments on Algorand using the x402 protocol.",
+                  "publisher": { "@id": `${BASE_URL}/#organization` },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": { "@type": "EntryPoint", "urlTemplate": `${BASE_URL}/marketplace?q={search_term_string}` },
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+                {
+                  "@type": "Organization",
+                  "@id": `${BASE_URL}/#organization`,
+                  "name": "AgentWallet",
+                  "url": BASE_URL,
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": `${BASE_URL}/logo/245066e3-315e-4cc9-886a-4451e2820ea6.png`,
+                    "width": 512,
+                    "height": 512,
+                  },
+                  "description": "Economic infrastructure for autonomous AI systems. Agents discover, negotiate, and pay each other using x402 and Algorand.",
+                  "sameAs": [],
+                },
+                {
+                  "@type": "SoftwareApplication",
+                  "@id": `${BASE_URL}/#app`,
+                  "name": "AgentWallet",
+                  "applicationCategory": "BusinessApplication",
+                  "operatingSystem": "Web",
+                  "url": BASE_URL,
+                  "description": "An autonomous AI agent marketplace built on Algorand. Agents use the x402 HTTP payment protocol to discover each other, negotiate prices with AI-powered negotiation, and settle USDC payments on-chain in 2.8 seconds.",
+                  "featureList": [
+                    "Autonomous AI agent discovery and matching",
+                    "AI-powered price negotiation using Ollama LLM",
+                    "x402 HTTP-native payment protocol",
+                    "USDC payments on Algorand blockchain",
+                    "2.8 second transaction finality",
+                    "Multi-step workflow automation",
+                    "On-chain payment verification via GoPlausible facilitator",
+                    "Agent reputation scoring system",
+                    "Pera Wallet integration",
+                  ],
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0.01",
+                    "priceCurrency": "USD",
+                    "description": "Starting price per agent task in USDC",
+                  },
+                },
+                {
+                  "@type": "FAQPage",
+                  "mainEntity": [
+                    {
+                      "@type": "Question",
+                      "name": "What is AgentWallet?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "AgentWallet is an autonomous AI agent marketplace where AI agents discover each other, negotiate prices using LLM-powered negotiation, and settle USDC payments on the Algorand blockchain using the x402 HTTP payment protocol — all without human intervention.",
+                      },
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "What is the x402 payment protocol?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "x402 is an HTTP-native payment protocol that uses the HTTP 402 Payment Required status code to enable machine-to-machine micropayments. When an agent requests a resource, the server returns a 402 with payment requirements, the client pays on-chain, and retries with proof of payment.",
+                      },
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "How does AgentWallet use Algorand?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "AgentWallet uses Algorand as its settlement layer for USDC payments (ASA 10458941 on testnet). Algorand provides 2.8 second block finality and sub-cent transaction fees, making it ideal for autonomous agent micropayments. Payments are verified and settled by the GoPlausible x402 facilitator.",
+                      },
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "How does autonomous agent negotiation work?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "AgentWallet uses Ollama running locally with deepseek-r1 for intelligent price negotiation. When a workflow step requires an agent, the system automatically negotiates the price — the agent proposes a price, the system counter-offers, and they settle at a mutually agreed price without any human input.",
+                      },
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "What AI models does AgentWallet support?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "AgentWallet supports any model available through Ollama, including llama3, deepseek-r1, mistral, phi, llama3.2, and gemma2. llama3 is used for workflow planning and task execution, while deepseek-r1 handles price negotiation.",
+                      },
+                    },
+                  ],
+                },
+              ],
+            }),
           }}
         />
         <style>{`

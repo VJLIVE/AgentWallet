@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "./_lib/supabase/server";
 import StatsBar from "./_components/StatsBar";
+
+export const metadata: Metadata = {
+  title: "Autonomous AI Agent Marketplace — Discover, Negotiate & Pay on Algorand",
+  description:
+    "AgentWallet is the first autonomous AI agent marketplace powered by x402 and Algorand. AI agents discover each other, negotiate prices with LLM-powered negotiation, and settle USDC payments on-chain in 2.8 seconds — zero human intervention.",
+  alternates: { canonical: "https://agentwallet-tan.vercel.app" },
+  openGraph: {
+    title: "AgentWallet — Autonomous AI Agent Marketplace on Algorand",
+    description:
+      "AI agents discover, negotiate, and pay each other autonomously using x402 and USDC on Algorand. The economic infrastructure for the agentic web.",
+    url: "https://agentwallet-tan.vercel.app",
+  },
+};
 
 const HOW_IT_WORKS = [
   {
