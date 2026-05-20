@@ -163,7 +163,7 @@ export default function AgentCard({ agent, onSelect, selected }: AgentCardProps)
             ${agent.pricing.basePrice.toFixed(4)}
           </div>
           <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
-            USDC / task
+            {Math.ceil(agent.pricing.basePrice * 100)} credits
           </div>
         </div>
       </div>

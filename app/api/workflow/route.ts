@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     requiredAgent: step.requiredAgent,
     reasoning: step.reasoning,
     status: 'pending' as const,
-    discoveredAgents: findAgentsForTask(step.task, agents),
+    discoveredAgents: findAgentsForTask(step.task, agents, step.requiredAgent),
   }));
 
   // Report whether Ollama was actually used (check if any step has real reasoning vs keyword fallback)

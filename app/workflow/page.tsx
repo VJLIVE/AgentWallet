@@ -7,7 +7,8 @@ import WorkflowVisualizer from '@/app/_components/WorkflowVisualizer';
 import NegotiationDialog from '@/app/_components/NegotiationDialog';
 import { useWallet } from '@/app/_components/WalletProvider';
 import CreditBalance from '@/app/_components/CreditBalance';
-import { calculateWorkflowCost } from '@/app/_lib/credits';
+import { calculateWorkflowCost, getCreditBalance } from '@/app/_lib/credits';
+import { InsufficientCreditsDialog } from '@/app/_components/InsufficientCreditsDialog';
 
 interface StepWithAgents extends WorkflowStep {
   discoveredAgents?: Agent[];
@@ -98,6 +99,7 @@ function WorkflowPageInner() {
   const [finalResult, setFinalResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ollamaUsed, setOllamaUsed] = useState(false);
+  const [insufficientCredits, setInsufficientCredits] = useState<{ required: number; balance: number } | null>(null);
   const preselectedAgentId = searchParams.get('agent');
 
   const stepsRef = useRef<StepWithAgents[]>([]);
@@ -150,6 +152,18 @@ function WorkflowPageInner() {
 
       if (!res.ok) throw new Error(`Workflow API error: ${res.status}`);
       const data = await res.json() as { workflow: StepWithAgents[]; ollamaUsed: boolean };
+
+      // Check if user has enough credits for this workflow
+      if (address) {
+        const totalAgents = data.workflow.reduce((sum, step) => sum + (step.discoveredAgents?.length ? 1 : 0), 0);
+        const estimatedCost = calculateWorkflowCost(totalAgents || data.workflow.length, 1);
+        const balance = await getCreditBalance(address);
+        if (balance < estimatedCost) {
+          setInsufficientCredits({ required: estimatedCost, balance });
+          setFlowPhase('idle');
+          return;
+        }
+      }
 
       setSteps(data.workflow);
       stepsRef.current = data.workflow;
@@ -267,6 +281,8 @@ function WorkflowPageInner() {
       stepResultsRef.current[index] = data.result;
       updateStep(index, { status: data.status === 'completed' ? 'completed' : 'failed', result: data.result });
       updateStepState(index, { result: data.result, phase: 'done' });
+      // Notify navbar to refresh credit balance after deduction
+      window.dispatchEvent(new CustomEvent('credits-updated'));
       advanceToNextStep(index, data.result);
     } catch (err) {
       const errMsg = `Execution error: ${err instanceof Error ? err.message : String(err)}`;
@@ -317,6 +333,14 @@ function WorkflowPageInner() {
         gap: '2rem',
       }}
     >
+      {/* Insufficient credits dialog */}
+      {insufficientCredits && (
+        <InsufficientCreditsDialog
+          requiredCredits={insufficientCredits.required}
+          currentBalance={insufficientCredits.balance}
+          onClose={() => setInsufficientCredits(null)}
+        />
+      )}
       {/* Page header */}
       <div style={{ paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="section-label" style={{ marginBottom: '0.375rem' }}>Workflow Builder</div>

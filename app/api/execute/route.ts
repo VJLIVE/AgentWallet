@@ -121,11 +121,42 @@ export async function POST(request: Request) {
   if (status === 'completed') {
     const { error: rpcError } = await supabase.rpc('increment_agent_jobs', { agent_id: agentId });
     if (rpcError) {
-      // RPC may not exist yet — fall back to a safe direct increment
       await supabase
         .from('agents')
         .update({ total_jobs: (agent.total_jobs ?? 0) + 1 })
         .eq('id', agentId);
+    }
+
+    // Deduct credits from requester: 1 USDC = 100 credits
+    if (requesterWallet && requesterWallet !== 'unknown') {
+      const usdcAmount = parseFloat(String(txRecord.amount ?? '0'));
+      console.log(`[CREDIT DEDUCTION] Attempting to deduct ${usdcAmount} USDC (${Math.ceil(usdcAmount * 100)} credits) from ${requesterWallet}`);
+      if (usdcAmount > 0) {
+        try {
+          const creditResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/credits`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'deduct',
+              address: requesterWallet,
+              usdcAmount,
+            }),
+          });
+          const creditResult = await creditResponse.json();
+          if (!creditResponse.ok) {
+            console.error('[CREDIT DEDUCTION] Failed:', creditResult);
+          } else {
+            console.log('[CREDIT DEDUCTION] Success:', creditResult);
+          }
+        } catch (creditErr) {
+          // Non-fatal — log but don't fail the job
+          console.error('[CREDIT DEDUCTION] Exception:', creditErr);
+        }
+      } else {
+        console.log('[CREDIT DEDUCTION] Skipped - amount is 0');
+      }
+    } else {
+      console.log('[CREDIT DEDUCTION] Skipped - no valid requester wallet');
     }
   }
 
@@ -138,6 +169,9 @@ export async function POST(request: Request) {
     resultHash,
     status,
     completedAt,
+    creditsDeducted: status === 'completed'
+      ? Math.ceil(parseFloat(String(txRecord.amount ?? '0')) * 100)
+      : 0,
   });
 }
 
