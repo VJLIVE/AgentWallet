@@ -22,9 +22,7 @@ export async function hasOptedIn(userAddress: string): Promise<boolean> {
   try {
     const accountInfo = await algodClient.accountInformation(userAddress).do();
     // algosdk v3: camelCase
-    const appsLocalState = accountInfo.appsLocalState
-      ?? accountInfo['apps-local-state']
-      ?? [];
+    const appsLocalState = (accountInfo as any).appsLocalState ?? [];
     return appsLocalState.some((app: any) => {
       const id = typeof app.id === 'bigint' ? Number(app.id) : Number(app.id);
       return id === CREDIT_CONTRACT_ID;
@@ -146,8 +144,7 @@ export async function getCreditBalance(userAddress: string): Promise<number> {
       .do();
 
     // algosdk v3: uses camelCase 'appLocalState' and 'keyValue'
-    const localState = accountInfo?.appLocalState?.keyValue
-      ?? accountInfo?.['app-local-state']?.['key-value'];
+    const localState = (accountInfo as any)?.appLocalState?.keyValue ?? [];
 
     if (!localState || !Array.isArray(localState)) {
       return 0;
@@ -199,7 +196,7 @@ export async function getConversionRate(): Promise<number> {
       .do();
 
     // algosdk v3 uses camelCase 'globalState'
-    const globalState = appInfo.params?.globalState || appInfo.params?.['global-state'];
+    const globalState = (appInfo.params as any)?.globalState ?? [];
     
     if (!globalState || !Array.isArray(globalState)) {
       console.warn('Global state not found or invalid');
@@ -228,7 +225,7 @@ export async function getCompanyWallet(): Promise<string> {
       .do();
 
     // algosdk v3 uses camelCase 'globalState'
-    const globalState = appInfo.params?.globalState || appInfo.params?.['global-state'];
+    const globalState = (appInfo.params as any)?.globalState ?? [];
     
     if (!globalState || !Array.isArray(globalState)) {
       throw new Error('Global state not found');
@@ -259,7 +256,7 @@ export async function getTotalCreditsIssued(): Promise<number> {
       .do();
 
     // algosdk v3 uses camelCase 'globalState'
-    const globalState = appInfo.params?.globalState || appInfo.params?.['global-state'];
+    const globalState = (appInfo.params as any)?.globalState ?? [];
     
     if (!globalState || !Array.isArray(globalState)) {
       return 0;
